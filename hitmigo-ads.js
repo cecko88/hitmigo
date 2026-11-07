@@ -33,7 +33,27 @@ async function publishAd() {
     alert("Въведи валидна цена.");
     return;
   }
+const imageFile = document.getElementById("ad-image").files[0];
+let imageUrl = null;
 
+if (imageFile) {
+  const fileName = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}-${imageFile.name}`;
+
+  const { error: uploadError } = await db.storage
+    .from("ad-images")
+    .upload(fileName, imageFile);
+
+  if (uploadError) {
+    alert("Грешка при качване на снимката: " + uploadError.message);
+    return;
+  }
+
+  const { data: imageData } = db.storage
+    .from("ad-images")
+    .getPublicUrl(fileName);
+
+  imageUrl = imageData.publicUrl;
+}
   const { error } = await db.from("ads").insert({
     user_id: user.id,
     title,
@@ -41,7 +61,7 @@ async function publishAd() {
     price,
     category,
     city,
-image_url: null
+image_url: imageUrl
     
   });
 
