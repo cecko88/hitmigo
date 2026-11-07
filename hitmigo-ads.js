@@ -121,6 +121,15 @@ async function loadAds() {
     const description = document.createElement("p");
     description.textContent = ad.description || "";
 
+if (ad.image_url) {
+  const image = document.createElement("img");
+  image.src = ad.image_url;
+  image.alt = ad.title;
+  image.style.cssText =
+    "width:100%;max-height:300px;object-fit:contain;border-radius:10px;margin-bottom:12px;";
+  card.appendChild(image);
+}
+    
     card.append(
 if (ad.image_url) {
   const image = document.createElement("img");
