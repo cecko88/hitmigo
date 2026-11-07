@@ -36,7 +36,29 @@
       <div class="category">🔧 Услуги</div>
     </section>
   </main>
+<section id="hitmigo-new-ad" style="padding:25px 15px;text-align:center;background:#eef5ff">
+  <h2>📢 Публикувай обява</h2>
+  <input id="ad-title" placeholder="Заглавие"><br><br>
+  <textarea id="ad-description" placeholder="Описание"></textarea><br><br>
+  <input id="ad-price" type="number" min="0" step="0.01" placeholder="Цена в лева"><br><br>
+  <select id="ad-category">
+    <option value="">Избери категория</option>
+    <option>Автомобили</option>
+    <option>Имоти</option>
+    <option>Техника</option>
+    <option>Мода</option>
+    <option>За дома</option>
+    <option>Работа</option>
+    <option>Услуги</option>
+  </select><br><br>
+  <input id="ad-city" placeholder="Град"><br><br>
+  <button type="button" onclick="publishAd()">Публикувай безплатно</button>
+</section>
 
+<section style="padding:25px 15px;text-align:center">
+  <h2>📋 Последни обяви</h2>
+  <div id="ads-list">Зареждане на обявите...</div>
+</section>
 
 <section id="hitmigo-account" style="padding:25px 18px;text-align:center;background:#eef5ff">
   <h2>👤 Моят профил</h2>
