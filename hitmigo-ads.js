@@ -40,7 +40,9 @@ async function publishAd() {
     description,
     price,
     category,
-    city
+    city,
+image_url: null
+    
   });
 
   if (error) {
