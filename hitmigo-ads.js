@@ -274,6 +274,7 @@
       }
 
       await loadAds();
+      await loadMyAds();
 
     } catch (error) {
       console.error("Hitmigo publish error:", error);
@@ -584,6 +585,77 @@
    * Публични функции за бутоните
    * и филтрите в index.html.
    */
+
+  async function loadMyAds() {
+    const box = $("my-ads-list");
+    if (!box) return;
+    box.textContent = "Зареждане...";
+    const client = getDb();
+    const { data: auth, error: authError } = await client.auth.getUser();
+    if (authError || !auth?.user) { box.replaceChildren(); return; }
+    const { data, error } = await client.from("ads")
+      .select("id,title,description,price,category,city,image_url,attributes")
+      .eq("user_id", auth.user.id).order("created_at", { ascending: false }).limit(200);
+    if (error) { box.textContent = "Грешка: " + error.message; return; }
+    box.replaceChildren();
+    if (!data?.length) { box.textContent = "Все още нямаш обяви."; return; }
+    for (const ad of data) {
+      const card = renderAd(ad);
+      const edit = makeElement("button", "", "Редактирай");
+      edit.type = "button";
+      edit.addEventListener("click", () => editMyAd(ad));
+      const remove = makeElement("button", "secondary-button", "Изтрий");
+      remove.type = "button";
+      remove.addEventListener("click", () => deleteMyAd(ad));
+      card.append(edit, document.createTextNode(" "), remove);
+      box.appendChild(card);
+    }
+  }
+
+  async function editMyAd(ad) {
+    const title = prompt("Заглавие", ad.title || "");
+    if (title === null) return;
+    const description = prompt("Описание", ad.description || "");
+    if (description === null) return;
+    const priceInput = prompt("Цена в евро", String(ad.price ?? 0));
+    if (priceInput === null) return;
+    const city = prompt("Град", ad.city || "");
+    if (city === null) return;
+    const price = Number(priceInput);
+    if (!title.trim() || !description.trim() || !city.trim() ||
+        !priceInput.trim() || !Number.isFinite(price) || price < 0) {
+      alert("Попълни правилно заглавие, описание, цена и град."); return;
+    }
+    try {
+      const client = getDb();
+      const { data: auth, error: authError } = await client.auth.getUser();
+      if (authError || !auth?.user) throw new Error("Влез в профила си.");
+      const { data, error } = await client.from("ads")
+        .update({ title: title.trim(), description: description.trim(), price, city: city.trim() })
+        .eq("id", ad.id).eq("user_id", auth.user.id).select("id");
+      if (error) throw error;
+      if (!data?.length) throw new Error("Обявата не е намерена или нямаш право да я редактираш.");
+      await Promise.all([loadMyAds(), loadAds()]);
+      alert("Обявата е редактирана.");
+    } catch (error) { alert("Неуспешна редакция: " + error.message); }
+  }
+
+  async function deleteMyAd(ad) {
+    if (!confirm("Сигурен ли си, че искаш да изтриеш обявата „" + ad.title + "“?")) return;
+    try {
+      const client = getDb();
+      const { data: auth, error: authError } = await client.auth.getUser();
+      if (authError || !auth?.user) throw new Error("Влез в профила си.");
+      const { data, error } = await client.from("ads").delete()
+        .eq("id", ad.id).eq("user_id", auth.user.id).select("id");
+      if (error) throw error;
+      if (!data?.length) throw new Error("Обявата не е намерена или нямаш право да я изтриеш.");
+      await Promise.all([loadMyAds(), loadAds()]);
+      alert("Обявата е изтрита. Снимката може да остане в хранилището.");
+    } catch (error) { alert("Неуспешно изтриване: " + error.message); }
+  }
+  window.loadMyAds = loadMyAds;
+
   window.publishAd = publishAd;
   window.loadAds = loadAds;
 })();
