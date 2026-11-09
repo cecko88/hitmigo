@@ -414,6 +414,8 @@
 
     <div id="user-panel" class="hidden">
       <p id="user-email"></p>
+      <h3>Моите обяви</h3>
+      <div id="my-ads-list"></div>
       <button type="button" onclick="handleLogout()">
         Изход
       </button>
@@ -483,6 +485,7 @@
       user ? user.email : "";
 
     document.getElementById("auth-message").textContent = "";
+    if (typeof loadMyAds === "function") await loadMyAds();
   }
 </script>
 
