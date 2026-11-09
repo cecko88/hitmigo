@@ -105,6 +105,19 @@ async function loadAds() {
   }
 
   for (const ad of data) {
+        const search = document.getElementById("ads-search");
+    const query = search ? search.value.trim().toLowerCase() : "";
+
+    const adText = [
+      ad.title,
+      ad.description,
+      ad.category,
+      ad.city
+    ].join(" ").toLowerCase();
+
+    if (query && !adText.includes(query)) {
+      continue;
+    }
     const card = document.createElement("article");
     card.style.cssText =
       "background:white;padding:18px;margin:12px 0;" +
