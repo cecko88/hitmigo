@@ -96,3 +96,35 @@ const HITMIGO_CATEGORIES = {
     "Разни": []
   }
 };
+const HITMIGO_FILTERS = {
+  "Автомобили": {
+    brands: [
+      "Audi", "BMW", "Mercedes-Benz", "Volkswagen",
+      "Opel", "Ford", "Toyota", "Honda", "Hyundai",
+      "Kia", "Renault", "Peugeot", "Citroen", "Skoda",
+      "Seat", "Volvo", "Mazda", "Nissan", "Fiat",
+      "Dacia", "Suzuki", "Mitsubishi", "Subaru",
+      "Porsche", "Land Rover", "Jeep", "Lexus",
+      "Tesla", "Mini", "Alfa Romeo", "Chevrolet",
+      "Chrysler", "Dodge", "Jaguar", "Infiniti",
+      "SsangYong", "Smart", "Lancia", "Saab",
+      "Други"
+    ],
+    fuel: [
+      "Бензин", "Дизел", "Газ/Бензин",
+      "Метан", "Хибрид", "Plug-in хибрид",
+      "Електрически"
+    ],
+    transmission: [
+      "Ръчна", "Автоматична", "Полуавтоматична"
+    ],
+    fields: [
+      "Марка", "Модел", "Година", "Гориво",
+      "Скоростна кутия", "Пробег (км)",
+      "Мощност (к.с.)", "Кубатура",
+      "Тип купе", "Брой врати", "Цвят",
+      "Евростандарт", "Състояние", "Цена"
+    ]
+  }
+};
+
