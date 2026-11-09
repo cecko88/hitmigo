@@ -3,103 +3,210 @@
 <html lang="bg">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Hitmigo - Безплатни обяви</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#1565c0">
+  <title>Hitmigo — Обяви за всеки</title>
+
   <style>
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f4f7fb;
-      color: #14213d;
+      background: #f4f6f9;
+      color: #202938;
     }
 
     header {
-      background: #0754c9;
+      background: #1565c0;
       color: white;
-      padding: 25px;
+      padding: 16px;
       text-align: center;
     }
 
-    h1 { margin: 0; font-size: 36px; }
+    header h1 {
+      margin: 0;
+      font-size: 30px;
+    }
+
+    header p {
+      margin: 6px 0 0;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: auto;
+      padding: 16px;
+    }
+
+    section {
+      background: white;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 22px;
+    }
 
     .hero {
-      padding: 35px 18px;
       text-align: center;
-    }
-
-    input {
-      padding: 14px;
-      width: 80%;
-      max-width: 400px;
-      border: 1px solid #ccc;
-      border-radius: 9px;
-      box-sizing: border-box;
-    }
-
-    button {
-      padding: 14px 20px;
-      background: #00aa65;
+      background: linear-gradient(135deg, #1565c0, #2196f3);
       color: white;
-      border: 0;
-      border-radius: 9px;
-      margin: 10px;
-      cursor: pointer;
+      padding: 30px 18px;
+    }
+
+    .hero h2 {
+      font-size: 27px;
     }
 
     .categories {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 12px;
-      padding: 15px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
     }
 
-    .category {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 2px 8px #ddd;
-    }
-
-    #hitmigo-new-ad {
-      padding: 25px 15px;
-      text-align: center;
+    .category-card {
       background: #eef5ff;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      padding: 16px 8px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      color: #173b68;
     }
 
-    #ad-category,
-    #ad-subcategory,
-    #ad-subsubcategory {
+    .category-card:hover,
+    .category-card.active {
+      border-color: #1565c0;
+      background: #dcecff;
+    }
+
+    .category-icon {
+      display: block;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    input,
+    select,
+    textarea {
       width: 100%;
-      max-width: 300px;
-      padding: 12px;
-      margin: 8px 0;
-      border: 1px solid #ccc;
+      padding: 11px;
+      margin: 6px 0 12px;
+      border: 1px solid #ccd5df;
       border-radius: 8px;
       font-size: 16px;
-      box-sizing: border-box;
+      background: white;
     }
 
-    #hitmigo-category-fields {
-      width: 100%;
-      max-width: 320px;
-      margin: 0 auto;
+    textarea {
+      min-height: 110px;
+      resize: vertical;
     }
 
-    #ad-attributes-container > div {
-      margin: 10px 0;
-    }
-
-    #ad-attributes-container label {
+    label {
       display: block;
-      margin-bottom: 4px;
+      font-weight: bold;
+      margin-top: 8px;
     }
 
-    #ad-attributes-container input,
-    #ad-attributes-container select {
+    button {
+      background: #1565c0;
+      color: white;
+      border: 0;
+      border-radius: 8px;
+      padding: 12px 18px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: bold;
+    }
+
+    button:hover {
+      background: #0d47a1;
+    }
+
+    .secondary-button {
+      background: #607d8b;
+    }
+
+    .filter-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .ad-card {
+      background: #fff;
+      border: 1px solid #e0e6ed;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 14px;
+      overflow: hidden;
+    }
+
+    .ad-card img {
       width: 100%;
-      max-width: 300px;
-      box-sizing: border-box;
+      max-height: 260px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .ad-card h3 {
+      margin-bottom: 8px;
+    }
+
+    .ad-card p {
+      overflow-wrap: anywhere;
+    }
+
+    #ad-attributes-container,
+    #hitmigo-extra-attributes {
+      display: grid;
+      gap: 8px;
+    }
+
+    #ad-subsubcategory-container {
+      display: none;
+    }
+
+    #browse-filters {
+      display: none;
+      margin-top: 12px;
+    }
+
+    #browse-subcategory-container {
+      display: none;
+    }
+
+    .notice {
+      color: #546477;
+      font-size: 14px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 600px) {
+      .categories {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .filter-row {
+        grid-template-columns: 1fr;
+      }
+
+      section {
+        padding: 14px;
+      }
     }
   </style>
 </head>
@@ -108,219 +215,418 @@
 
 <header>
   <h1>Hitmigo</h1>
-  <p>Публикувай безплатно. Намери всичко.</p>
+  <p>Обяви за всеки</p>
 </header>
 
 <main>
+
   <section class="hero">
-    <h2>Безплатни обяви в България</h2>
-    <p>Разгледай обявите или публикувай своя безплатно!</p>
+    <h2>Купувай, продавай и откривай!</h2>
+    <p>Намери това, което търсиш, или публикувай своя обява.</p>
   </section>
 
-  <section class="categories">
-    <div class="category">🚗 Автомобили</div>
-    <div class="category">🏠 Имоти</div>
-    <div class="category">📱 Техника</div>
-    <div class="category">👕 Мода</div>
-    <div class="category">🛋️ За дома</div>
-    <div class="category">💼 Работа</div>
-    <div class="category">🔧 Услуги</div>
-    <div class="category">👶 За бебето и детето</div>
-    <div class="category">🐾 Животни</div>
-    <div class="category">⚽ Спорт и хоби</div>
-    <div class="category">🚜 Селско стопанство</div>
-    <div class="category">📦 Други</div>
+  <section id="categories-section">
+    <h2>Категории</h2>
+
+    <div class="categories" id="homepage-categories">
+      <button type="button" class="category-card" data-browse-category="Автомобили">
+        <span class="category-icon">🚗</span>Автомобили
+      </button>
+
+      <button type="button" class="category-card" data-browse-category="Имоти">
+        <span class="category-icon">🏠</span>Имоти
+      </button>
+
+      <button type="button" class="category-card" data-browse-category="Техника">
+        <span class="category-icon">📱</span>Техника
+      </button>
+
+      <button type="button" class="category-card" data-browse-category="Мода">
+        <span class="category-icon">👕</span>Мода
+      </button>
+
+      <button type="button" class="category-card" data-browse-category="За дома">
+        <span class="category-icon">🛋️</span>За дома
+      </button>
+
+      <button type="button" class="category-card" data-browse-category="Работа">
+        <span class="category-icon">💼</span>Работа
+      </button>
+
+      <button type="button" class="category-card" data-browse-category="Услуги">
+        <span class="category-icon">🛠️</span>Услуги
+      </button>
+
+      <button type="button" class="category-card" data-browse-category="За бебето и детето">
+        <span class="category-icon">🧸</span>За бебето и детето
+      </button>
+
+      <button type="button" class="category-card" data-browse-category="Животни">
+        <span class="category-icon">🐾</span>Животни
+      </button>
+
+      <button type="button" class="category-card" data-browse-category="Спорт и хоби">
+        <span class="category-icon">🚴</span>Спорт и хоби
+      </button>
+
+      <button type="button" class="category-card" data-browse-category="Селско стопанство">
+        <span class="category-icon">🚜</span>Селско стопанство
+      </button>
+
+      <button type="button" class="category-card" data-browse-category="Други">
+        <span class="category-icon">📦</span>Други
+      </button>
+    </div>
   </section>
-</main>
 
-<section id="hitmigo-new-ad">
-  <h2>📢 Публикувай обява</h2>
+  <section id="ads-section">
+    <h2>Обяви</h2>
 
-  <input id="ad-title" placeholder="Заглавие">
-  <br><br>
+    <label for="ads-search">Търсене</label>
+    <input
+      id="ads-search"
+      type="search"
+      placeholder="Търси обяви..."
+    >
 
-  <textarea
-    id="ad-description"
-    placeholder="Описание"
-    rows="5"
-    style="width:100%;max-width:300px;box-sizing:border-box;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:16px;"
-  ></textarea>
-  <br><br>
+    <div id="browse-filters">
+      <div class="filter-row">
+        <div>
+          <label for="browse-category">Категория</label>
+          <select id="browse-category">
+            <option value="">Всички категории</option>
+          </select>
+        </div>
 
-  <input
-    id="ad-price"
-    type="number"
-    min="0"
-    step="0.01"
-    placeholder="Цена в евро (€)"
-  >
-  <br><br>
+        <div id="browse-subcategory-container">
+          <label for="browse-subcategory">Подкатегория</label>
+          <select id="browse-subcategory">
+            <option value="">Всички подкатегории</option>
+          </select>
+        </div>
+      </div>
 
-  <select id="ad-category">
-    <option value="">Избери категория</option>
-  </select>
-  <br><br>
+      <button
+        type="button"
+        class="secondary-button"
+        id="clear-browse-filters"
+      >
+        Покажи всички обяви
+      </button>
+    </div>
 
-  <!-- Подкатегориите са извън стария автомобилен блок -->
-  <div id="hitmigo-category-fields">
+    <div id="ads-list"></div>
+  </section>
 
+  <section id="publish-section">
+    <h2>Публикувай обява</h2>
+
+    <label for="ad-title">Заглавие</label>
+    <input
+      id="ad-title"
+      type="text"
+      placeholder="Какво продаваш или предлагаш?"
+    >
+
+    <label for="ad-description">Описание</label>
+    <textarea
+      id="ad-description"
+      placeholder="Опиши обявата подробно..."
+    ></textarea>
+
+    <label for="ad-price">Цена (€)</label>
+    <input
+      id="ad-price"
+      type="number"
+      min="0"
+      step="0.01"
+      placeholder="Цена в евро"
+    >
+
+    <label for="ad-category">Категория</label>
+    <select id="ad-category">
+      <option value="">Избери категория</option>
+    </select>
+
+    <label for="ad-subcategory">Подкатегория</label>
     <select id="ad-subcategory">
       <option value="">Избери подкатегория</option>
     </select>
 
-    <div id="ad-subsubcategory-container"></div>
+    <div id="ad-subsubcategory-container">
+      <label for="ad-subsubcategory">Вид</label>
+      <select id="ad-subsubcategory">
+        <option value="">Избери вид</option>
+      </select>
+    </div>
 
     <div id="ad-attributes-container"></div>
 
-  </div>
-
-  <br>
-
-  <input id="ad-city" placeholder="Град">
-  <br><br>
-
-  <input
-    type="file"
-    id="ad-image"
-    accept="image/*"
-  >
-  <br><br>
-
-  <button type="button" onclick="publishAd()">
-    Публикувай безплатно
-  </button>
-</section>
-
-<section style="padding:25px 15px;text-align:center">
-  <h2>📋 Последни обяви</h2>
-
-  <input
-    id="ads-search"
-    type="search"
-    placeholder="🔎 Търси обяви..."
-    style="width:100%;max-width:350px;box-sizing:border-box;padding:12px;border:1px solid #ccc;border-radius:10px;font-size:16px;margin-bottom:15px;"
-  >
-
-  <div id="ads-list">
-    Зареждане на обявите...
-  </div>
-</section>
-
-<section
-  id="hitmigo-account"
-  style="padding:25px 18px;text-align:center;background:#eef5ff"
->
-  <h2>👤 Моят профил</h2>
-
-  <div id="auth-form">
+    <label for="ad-city">Град</label>
     <input
-      id="auth-email"
-      type="email"
-      placeholder="Имейл"
-      autocomplete="email"
+      id="ad-city"
+      type="text"
+      placeholder="Например: Кърджали"
     >
-    <br><br>
 
+    <label for="ad-image">Снимка</label>
     <input
-      id="auth-password"
-      type="password"
-      placeholder="Парола (поне 6 символа)"
-      autocomplete="current-password"
+      id="ad-image"
+      type="file"
+      accept="image/*"
     >
-    <br><br>
 
-    <button type="button" onclick="hitmigoRegister()">
-      Регистрация
+    <button type="button" onclick="publishAd()">
+      Публикувай обява
     </button>
 
-    <button type="button" onclick="hitmigoLogin()">
-      Вход
-    </button>
-  </div>
+    <p class="notice">
+      За публикуване трябва да си влязъл в профила си.
+    </p>
+  </section>
 
-  <div id="auth-user" style="display:none">
-    <p id="auth-status"></p>
+  <section id="profile-section">
+    <h2>Моят профил</h2>
 
-    <button type="button" onclick="hitmigoLogout()">
-      Изход
-    </button>
-  </div>
-</section>
+    <div id="auth-forms">
+      <label for="auth-email">Имейл</label>
+      <input
+        id="auth-email"
+        type="email"
+        placeholder="Имейл адрес"
+      >
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+      <label for="auth-password">Парола</label>
+      <input
+        id="auth-password"
+        type="password"
+        placeholder="Парола"
+      >
 
-<script src="hitmigo-categories.js?v=4"></script>
+      <button type="button" onclick="handleLogin()">
+        Вход
+      </button>
+
+      <button type="button" onclick="handleRegister()">
+        Регистрация
+      </button>
+    </div>
+
+    <div id="user-panel" class="hidden">
+      <p id="user-email"></p>
+      <button type="button" onclick="handleLogout()">
+        Изход
+      </button>
+    </div>
+
+    <p id="auth-message"></p>
+  </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="hitmigo-categories.js?v=5"></script>
 <script src="hitmigo-auth.js"></script>
 
 <script>
-  function hitmigoCredentials() {
-    return [
-      document.getElementById("auth-email").value.trim(),
-      document.getElementById("auth-password").value
-    ];
-  }
+  async function handleLogin() {
+    const email = document.getElementById("auth-email").value.trim();
+    const password = document.getElementById("auth-password").value;
 
-  async function hitmigoRegister() {
-    const [email, password] = hitmigoCredentials();
-
-    if (!email || password.length < 6) {
-      alert("Въведи имейл и парола с поне 6 символа.");
-      return;
+    try {
+      await loginUser(email, password);
+      await updateUserPanel();
+    } catch (error) {
+      document.getElementById("auth-message").textContent =
+        error.message || "Грешка при вход.";
     }
-
-    await registerUser(email, password);
-    await hitmigoRefresh();
   }
 
-  async function hitmigoLogin() {
-    const [email, password] = hitmigoCredentials();
+  async function handleRegister() {
+    const email = document.getElementById("auth-email").value.trim();
+    const password = document.getElementById("auth-password").value;
 
-    if (!email || !password) {
-      alert("Въведи имейл и парола.");
-      return;
+    try {
+      await registerUser(email, password);
+      await updateUserPanel();
+    } catch (error) {
+      document.getElementById("auth-message").textContent =
+        error.message || "Грешка при регистрация.";
     }
-
-    await loginUser(email, password);
-    await hitmigoRefresh();
   }
 
-  async function hitmigoLogout() {
-    await logoutUser();
-    await hitmigoRefresh();
+  async function handleLogout() {
+    try {
+      await logoutUser();
+      await updateUserPanel();
+    } catch (error) {
+      document.getElementById("auth-message").textContent =
+        error.message || "Грешка при изход.";
+    }
   }
 
-  async function hitmigoRefresh() {
+  async function updateUserPanel() {
+    if (typeof db === "undefined") return;
+
     const { data, error } = await db.auth.getUser();
 
-    if (error && error.name !== "AuthSessionMissingError") {
-      console.warn(error.message);
-    }
+    const user = error ? null : data.user;
 
-    const user = data?.user;
+    document.getElementById("auth-forms")
+      .classList.toggle("hidden", !!user);
 
-    document.getElementById("auth-form").style.display =
-      user ? "none" : "block";
+    document.getElementById("user-panel")
+      .classList.toggle("hidden", !user);
 
-    document.getElementById("auth-user").style.display =
-      user ? "block" : "none";
+    document.getElementById("user-email").textContent =
+      user ? user.email : "";
 
-    document.getElementById("auth-status").textContent =
-      user ? "Влязъл си като: " + user.email : "";
+    document.getElementById("auth-message").textContent = "";
   }
-
-  hitmigoRefresh();
 </script>
 
-<script src="hitmigo-filters.js?v=4"></script>
-<script src="hitmigo-ads.js"></script>
+<script src="hitmigo-filters.js?v=5"></script>
+<script src="hitmigo-advanced-filters.js?v=1"></script>
+<script src="hitmigo-ads.js?v=5"></script>
 
 <script>
-  document.getElementById("ads-search")
-    .addEventListener("input", function () {
-      loadAds();
+  (function () {
+    const categorySelect =
+      document.getElementById("browse-category");
+
+    const subcategorySelect =
+      document.getElementById("browse-subcategory");
+
+    const subcategoryContainer =
+      document.getElementById("browse-subcategory-container");
+
+    const browseFilters =
+      document.getElementById("browse-filters");
+
+    const cards = document.querySelectorAll(
+      "[data-browse-category]"
+    );
+
+    let activeCategory = "";
+    let activeSubcategory = "";
+
+    function fillCategories() {
+      if (typeof HITMIGO_CATEGORIES === "undefined") return;
+
+      Object.keys(HITMIGO_CATEGORIES).forEach((name) => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        categorySelect.appendChild(option);
+      });
+    }
+
+    function fillSubcategories() {
+      subcategorySelect.replaceChildren();
+
+      const all = document.createElement("option");
+      all.value = "";
+      all.textContent = "Всички подкатегории";
+      subcategorySelect.appendChild(all);
+
+      const list =
+        typeof HITMIGO_CATEGORIES !== "undefined" &&
+        HITMIGO_CATEGORIES[activeCategory];
+
+      if (list) {
+        Object.keys(list).forEach((name) => {
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          subcategorySelect.appendChild(option);
+        });
+      }
+
+      subcategoryContainer.style.display =
+        activeCategory ? "block" : "none";
+    }
+
+    function refreshCards() {
+      cards.forEach((card) => {
+        card.classList.toggle(
+          "active",
+          card.dataset.browseCategory === activeCategory
+        );
+      });
+    }
+
+    function applyBrowseFilters() {
+      /*
+       * hitmigo-ads.js ще бъде обновен
+       * в следващата стъпка.
+       */
+      window.hitmigoBrowseCategory = activeCategory;
+      window.hitmigoBrowseSubcategory = activeSubcategory;
+
+      if (typeof loadAds === "function") {
+        loadAds();
+      }
+    }
+
+    function selectCategory(name) {
+      activeCategory = name;
+      activeSubcategory = "";
+
+      categorySelect.value = name;
+      fillSubcategories();
+      refreshCards();
+
+      browseFilters.style.display =
+        name ? "block" : "none";
+
+      applyBrowseFilters();
+
+      document.getElementById("ads-section")
+        .scrollIntoView({ behavior: "smooth" });
+    }
+
+    cards.forEach((card) => {
+      card.addEventListener("click", () => {
+        selectCategory(card.dataset.browseCategory);
+      });
     });
 
-  loadAds();
+    categorySelect.addEventListener("change", () => {
+      selectCategory(categorySelect.value);
+    });
+
+    subcategorySelect.addEventListener("change", () => {
+      activeSubcategory = subcategorySelect.value;
+      applyBrowseFilters();
+    });
+
+    document.getElementById("clear-browse-filters")
+      .addEventListener("click", () => {
+        selectCategory("");
+      });
+
+    document.getElementById("ads-search")
+      .addEventListener("input", () => {
+        if (typeof loadAds === "function") {
+          loadAds();
+        }
+      });
+
+    fillCategories();
+
+    if (typeof loadAds === "function") {
+      loadAds();
+    }
+
+    updateUserPanel();
+
+    if (typeof db !== "undefined") {
+      db.auth.onAuthStateChange(() => {
+        updateUserPanel();
+      });
+    }
+  })();
 </script>
 
 </body>
