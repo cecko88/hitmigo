@@ -40,7 +40,7 @@
   <input id="ad-title" placeholder="Заглавие"><br><br>
   <textarea id="ad-description" placeholder="Описание" rows="5" style="width:100%;max-width:300px;box-sizing:border-box;padding:12px;border:1px solid #ccc;border-radius:8px;font-size:16px;"></textarea><br><br>
   <input id="ad-price" type="number" min="0" step="0.01" placeholder="цена в евро(€)"><br><br>
-  <select id="ad-category">
+  <select id="ad-category" onchange="document.getElementById('car-fields').style.display = this.value === 'Автомобили' ? 'block' : 'none'">
     <option value="">Избери категория</option>
     <option>Автомобили</option>
     <option>Имоти</option>
