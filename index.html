@@ -67,6 +67,11 @@
   style="width:100%;max-width:350px;box-sizing:border-box;padding:12px;border:1px solid #ccc;border-radius:10px;font-size:16px;margin-bottom:15px;"
 >
   <div id="ads-list">Зареждане на обявите...</div>
+  <script>
+document.getElementById("ads-search").addEventListener("input", function() {
+  loadAds();
+});
+  </script>
 </section>
 
 <section id="hitmigo-account" style="padding:25px 18px;text-align:center;background:#eef5ff">
