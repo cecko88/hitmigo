@@ -54,14 +54,27 @@ if (imageFile) {
 
   imageUrl = imageData.publicUrl;
 }
+    const attributes = {};
+
+  document.querySelectorAll("[data-ad-attribute]").forEach(field => {
+    if (field.value.trim() !== "") {
+      attributes[field.dataset.adAttribute] = field.value.trim();
+    }
+  });
+
+  const carBrand = attributes["Марка"] || null;
+  const carModel = attributes["Модел"] || null;
   const { error } = await db.from("ads").insert({
     user_id: user.id,
     title,
     description,
     price,
-    category,
+        category,
     city,
-image_url: imageUrl
+    image_url: imageUrl,
+    car_brand: carBrand,
+    car_model: carModel,
+    attributes: attributes
     
   });
 
