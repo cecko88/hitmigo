@@ -129,17 +129,8 @@ if (ad.image_url) {
     "width:100%;max-height:300px;object-fit:contain;border-radius:10px;margin-bottom:12px;";
   card.appendChild(image);
 }
-    
-    card.append(
-if (ad.image_url) {
-  const image = document.createElement("img");
-  image.src = ad.image_url;
-  image.alt = ad.title;
-  image.style.cssText =
-    "width:100%;max-height:300px;object-fit:contain;border-radius:10px;margin-bottom:12px;";
-  card.prepend(image);
-}
-    heading, info, description);
+    card.append(heading, info, description);
+      card.append(heading, info, description);
     container.appendChild(card);
   }
 }
