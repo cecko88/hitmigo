@@ -191,6 +191,13 @@
       font-size: 14px;
     }
 
+    header { position: relative; }
+    .profile-menu-wrap { position: absolute; top: 12px; right: 12px; z-index: 20; }
+    .profile-menu-button { background: #fff; color: #1565c0; padding: 9px 12px; font-size: 14px; }
+    .profile-menu-button:hover { background: #eaf2ff; }
+    #profile-section { display: none; position: absolute; top: 42px; right: 0; width: min(340px, calc(100vw - 24px)); max-height: 75vh; overflow-y: auto; background: #fff; color: #202938; text-align: left; padding: 16px; margin: 0; box-shadow: 0 8px 24px rgba(0,0,0,.22); border-radius: 12px; }
+    #profile-section.profile-menu-open { display: block; }
+    #profile-section button { margin: 3px 4px 6px 0; }
     .hidden {
       display: none !important;
     }
@@ -216,6 +223,47 @@
 <header>
   <h1>Hitmigo</h1>
   <p>Обяви за всеки</p>
+  <div class="profile-menu-wrap">
+    <button type="button" id="profile-menu-button" class="profile-menu-button" aria-expanded="false" aria-controls="profile-section" onclick="toggleProfileMenu()">👤 Профил</button>
+  <section id="profile-section">
+    <h2>Моят профил</h2>
+
+    <div id="auth-forms">
+      <label for="auth-email">Имейл</label>
+      <input
+        id="auth-email"
+        type="email"
+        placeholder="Имейл адрес"
+      >
+
+      <label for="auth-password">Парола</label>
+      <input
+        id="auth-password"
+        type="password"
+        placeholder="Парола"
+      >
+
+      <button type="button" onclick="handleLogin()">
+        Вход
+      </button>
+
+      <button type="button" onclick="handleRegister()">
+        Регистрация
+      </button>
+    </div>
+
+    <div id="user-panel" class="hidden">
+      <p id="user-email"></p>
+      <h3>Моите обяви</h3>
+      <div id="my-ads-list"></div>
+      <button type="button" onclick="handleLogout()">
+        Изход
+      </button>
+    </div>
+
+    <p id="auth-message"></p>
+  </section>
+  </div>
 </header>
 
 <main>
@@ -386,44 +434,7 @@
     </p>
   </section>
 
-  <section id="profile-section">
-    <h2>Моят профил</h2>
 
-    <div id="auth-forms">
-      <label for="auth-email">Имейл</label>
-      <input
-        id="auth-email"
-        type="email"
-        placeholder="Имейл адрес"
-      >
-
-      <label for="auth-password">Парола</label>
-      <input
-        id="auth-password"
-        type="password"
-        placeholder="Парола"
-      >
-
-      <button type="button" onclick="handleLogin()">
-        Вход
-      </button>
-
-      <button type="button" onclick="handleRegister()">
-        Регистрация
-      </button>
-    </div>
-
-    <div id="user-panel" class="hidden">
-      <p id="user-email"></p>
-      <h3>Моите обяви</h3>
-      <div id="my-ads-list"></div>
-      <button type="button" onclick="handleLogout()">
-        Изход
-      </button>
-    </div>
-
-    <p id="auth-message"></p>
-  </section>
 
 </main>
 
@@ -433,6 +444,22 @@
 <script src="hitmigo-auth.js"></script>
 
 <script>
+  function toggleProfileMenu() {
+    const panel = document.getElementById("profile-section");
+    const button = document.getElementById("profile-menu-button");
+    const open = !panel.classList.contains("profile-menu-open");
+    panel.classList.toggle("profile-menu-open", open);
+    button.setAttribute("aria-expanded", String(open));
+  }
+
+  document.addEventListener("click", function (event) {
+    const menu = document.querySelector(".profile-menu-wrap");
+    if (menu && !menu.contains(event.target)) {
+      document.getElementById("profile-section").classList.remove("profile-menu-open");
+      document.getElementById("profile-menu-button").setAttribute("aria-expanded", "false");
+    }
+  });
+
   async function handleLogin() {
     const email = document.getElementById("auth-email").value.trim();
     const password = document.getElementById("auth-password").value;
