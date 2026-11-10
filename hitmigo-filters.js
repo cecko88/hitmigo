@@ -297,8 +297,9 @@
       });
     } else {
       Object.entries(filters).forEach(([name, definition]) => {
-        if (category.value === "Мода" && name === "Номер обувки" &&
-            !/обувки/i.test(document.getElementById("ad-subcategory")?.value || "")) {
+        if (category.value === "Мода" &&
+            ((name === "Номер обувки" && !/обувки/i.test(document.getElementById("ad-subcategory")?.value || "")) ||
+             (name === "Размер" && /обувки/i.test(document.getElementById("ad-subcategory")?.value || "")))) {
           return;
         }
         container.append(regularField(name, definition));
