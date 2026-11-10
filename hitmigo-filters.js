@@ -291,12 +291,16 @@
       updateModel();
 
       Object.entries(filters).forEach(([name, definition]) => {
-        if (name !== "Марка" && name !== "Модел") {
+        if (name !== "Марка" && name !== "Модел" && name !== "Тип купе") {
           container.append(regularField(name, definition));
         }
       });
     } else {
       Object.entries(filters).forEach(([name, definition]) => {
+        if (category.value === "Мода" && name === "Номер обувки" &&
+            !/обувки/i.test(document.getElementById("ad-subcategory")?.value || "")) {
+          return;
+        }
         container.append(regularField(name, definition));
       });
     }
@@ -378,7 +382,10 @@
     category.value = previous;
 
     category.addEventListener("change", updateSubcategories);
-    sub.addEventListener("change", updateThirdLevel);
+    sub.addEventListener("change", () => {
+      updateThirdLevel();
+      updateAttributes();
+    });
 
     category.removeAttribute("onchange");
 
