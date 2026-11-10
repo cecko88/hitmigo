@@ -612,33 +612,150 @@
     }
   }
 
+
+  let editingAd = null;
+  let savingEdit = false;
+  let removeExistingPhoto = false;
+
+  function setField(id, value) {
+    const element = $(id);
+    if (element) element.value = value ?? "";
+  }
+
+  function populateAttributes(attributes) {
+    document.querySelectorAll("[data-ad-attribute]").forEach(element => {
+      const key = element.dataset.adAttribute;
+      const value = attributes[key];
+      if (value == null) return;
+      if (element.tagName === "SELECT" && !Array.from(element.options).some(o => o.value === String(value))) return;
+      element.value = String(value);
+      element.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+  }
+
+  function resetEditState() {
+    editingAd = null;
+    removeExistingPhoto = false;
+    const submit = $("ad-submit-button");
+    if (submit) submit.textContent = "Публикувай обява";
+    $("ad-cancel-edit")?.classList.add("hidden");
+    $("ad-existing-image")?.classList.add("hidden");
+    setField("ad-image", "");
+    $("publish-section")?.querySelector("h2")?.replaceChildren(document.createTextNode("Публикувай обява"));
+  }
+
+  function cancelAdEdit() {
+    resetEditState();
+    ["ad-title","ad-description","ad-price","ad-city"].forEach(id => setField(id, ""));
+    setField("ad-category", "");
+    $("ad-category")?.dispatchEvent(new Event("change", { bubbles: true }));
+  }
+
   async function editMyAd(ad) {
-    const title = prompt("Заглавие", ad.title || "");
-    if (title === null) return;
-    const description = prompt("Описание", ad.description || "");
-    if (description === null) return;
-    const priceInput = prompt("Цена в евро", String(ad.price ?? 0));
-    if (priceInput === null) return;
-    const city = prompt("Град", ad.city || "");
-    if (city === null) return;
-    const price = Number(priceInput);
-    if (!title.trim() || !description.trim() || !city.trim() ||
-        !priceInput.trim() || !Number.isFinite(price) || price < 0) {
-      alert("Попълни правилно заглавие, описание, цена и град."); return;
-    }
     try {
       const client = getDb();
       const { data: auth, error: authError } = await client.auth.getUser();
       if (authError || !auth?.user) throw new Error("Влез в профила си.");
-      const { data, error } = await client.from("ads")
-        .update({ title: title.trim(), description: description.trim(), price, city: city.trim() })
-        .eq("id", ad.id).eq("user_id", auth.user.id).select("id");
+      const { data: current, error } = await client.from("ads")
+        .select("id,title,description,price,category,city,image_url,attributes")
+        .eq("id", ad.id).eq("user_id", auth.user.id).single();
+      if (error || !current) throw error || new Error("Обявата не е намерена.");
+      editingAd = current;
+      removeExistingPhoto = false;
+      setField("ad-title", current.title);
+      setField("ad-description", current.description);
+      setField("ad-price", current.price);
+      setField("ad-city", current.city);
+      setField("ad-category", current.category);
+      $("ad-category")?.dispatchEvent(new Event("change", { bubbles: true }));
+      const attributes = current.attributes || {};
+      setField("ad-subcategory", attributes["Подкатегория"]);
+      $("ad-subcategory")?.dispatchEvent(new Event("change", { bubbles: true }));
+      setField("ad-subsubcategory", attributes["Вид"]);
+      populateAttributes(attributes);
+      setField("ad-image", "");
+      const imageBox = $("ad-existing-image");
+      if (imageBox) {
+        imageBox.replaceChildren();
+        if (current.image_url) {
+          const img = document.createElement("img");
+          img.src = current.image_url;
+          img.alt = "Текуща снимка";
+          img.style.cssText = "max-width:180px;max-height:180px;object-fit:contain;display:block;margin:8px 0";
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "secondary-button";
+          remove.textContent = "Премахни снимката";
+          remove.addEventListener("click", () => {
+            removeExistingPhoto = true;
+            img.remove();
+            remove.remove();
+            imageBox.append("Снимката ще бъде премахната при запазване.");
+          });
+          imageBox.append(img, remove);
+          imageBox.classList.remove("hidden");
+        } else imageBox.classList.add("hidden");
+      }
+      $("publish-section").querySelector("h2").textContent = "Редактирай обява";
+      $("ad-submit-button").textContent = "Запази промените";
+      $("ad-cancel-edit").classList.remove("hidden");
+      $("publish-section").scrollIntoView({ behavior: "smooth", block: "start" });
+    } catch (error) {
+      alert("Неуспешно отваряне на обявата: " + error.message);
+    }
+  }
+
+  async function saveAdEdit() {
+    if (!editingAd || savingEdit) return;
+    const title = getValue("ad-title");
+    const description = getValue("ad-description");
+    const priceText = getValue("ad-price");
+    const category = getValue("ad-category");
+    const city = getValue("ad-city");
+    const price = Number(priceText);
+    if (!title || !description || !city || !category || !priceText ||
+        !Number.isFinite(price) || price < 0) {
+      alert("Попълни правилно заглавие, описание, цена, категория и град.");
+      return;
+    }
+    const button = $("ad-submit-button");
+    savingEdit = true;
+    button.disabled = true;
+    button.textContent = "Запазване...";
+    try {
+      const client = getDb();
+      const { data: auth, error: authError } = await client.auth.getUser();
+      if (authError || !auth?.user) throw new Error("Влез в профила си.");
+      const attributes = getAttributeValues();
+      let imageUrl = removeExistingPhoto ? null : editingAd.image_url;
+      if ($("ad-image")?.files?.length) imageUrl = await uploadImage(client, auth.user.id);
+      const changes = {
+        title, description, price, category, city,
+        attributes, image_url: imageUrl,
+        car_brand: category === "Автомобили" ? attributes["Марка"] || null : null,
+        car_model: category === "Автомобили" ? attributes["Модел"] || null : null
+      };
+      const { data, error } = await client.from("ads").update(changes)
+        .eq("id", editingAd.id).eq("user_id", auth.user.id).select("id");
       if (error) throw error;
       if (!data?.length) throw new Error("Обявата не е намерена или нямаш право да я редактираш.");
+      cancelAdEdit();
       await Promise.all([loadMyAds(), loadAds()]);
-      alert("Обявата е редактирана.");
-    } catch (error) { alert("Неуспешна редакция: " + error.message); }
+      alert("Промените са запазени успешно.");
+    } catch (error) {
+      alert("Неуспешно запазване: " + error.message);
+    } finally {
+      savingEdit = false;
+      button.disabled = false;
+      button.textContent = editingAd ? "Запази промените" : "Публикувай обява";
+    }
   }
+
+  function submitAdForm() {
+    return editingAd ? saveAdEdit() : publishAd();
+  }
+  window.submitAdForm = submitAdForm;
+  window.cancelAdEdit = cancelAdEdit;
 
   async function deleteMyAd(ad) {
     if (!confirm("Сигурен ли си, че искаш да изтриеш обявата „" + ad.title + "“?")) return;
