@@ -35,3 +35,9 @@ input,select,textarea{background:#f8f9ff;color:#17192e;border-color:#777b9b}
 @keyframes migo-wink{0%,88%,100%{transform:scale(1)}91%{transform:scale(1,.83)}94%{transform:scale(1)}}
 @media(max-width:700px){header{padding-right:110px}.migo-face{width:52px;height:52px;font-size:28px}.migo-hero-mascot{opacity:.16;right:0;top:8%}.hero h2{max-width:100%}.categories{grid-template-columns:repeat(2,minmax(0,1fr))}.category-card{min-width:0}.ad-card img{max-height:250px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* MIGO cartoon mascot */
+.migo-face.migo-mascot-img{width:100px;height:112px;object-fit:contain;border-radius:0;background:none;box-shadow:none;flex-shrink:0;animation:migo-pop .65s ease-out both}
+.migo-hero-mascot{width:clamp(170px,24vw,280px);height:auto;top:4%;right:3%;font-size:initial;animation:migo-float 5s ease-in-out infinite}
+@keyframes migo-float{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-8px) rotate(-3deg)}}
+@media(max-width:700px){.migo-face.migo-mascot-img{width:74px;height:85px}.migo-hero-mascot{width:200px;top:0;right:-18px;opacity:.2}}
