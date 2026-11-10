@@ -22,11 +22,10 @@ async function registerUser(email, password) {
   });
 
   if (error) {
-    alert("Грешка: " + error.message);
-    return;
+    throw new Error(error.message);
   }
 
-  alert("Провери имейла си за потвърждение!");
+  alert(data.session ? "Регистрацията е успешна!" : "Провери имейла си за потвърждение!");
   return data;
 }
 
@@ -39,8 +38,7 @@ async function loginUser(email, password) {
     });
 
   if (error) {
-    alert("Грешка: " + error.message);
-    return;
+    throw new Error(error.message);
   }
 
   alert("Успешен вход в Hitmigo!");
@@ -52,8 +50,7 @@ async function logoutUser() {
   const { error } = await db.auth.signOut();
 
   if (error) {
-    alert("Грешка: " + error.message);
-    return;
+    throw new Error(error.message);
   }
 
   alert("Излезе успешно от профила.");
