@@ -182,9 +182,7 @@
       return;
     }
 
-    const publishButton = document.querySelector(
-      'button[onclick="publishAd()"]'
-    );
+    const publishButton = $("ad-submit-button");
 
     try {
       publishing = true;
