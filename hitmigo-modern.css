@@ -41,3 +41,9 @@ input,select,textarea{background:#f8f9ff;color:#17192e;border-color:#777b9b}
 .migo-hero-mascot{width:clamp(170px,24vw,280px);height:auto;top:4%;right:3%;font-size:initial;animation:migo-float 5s ease-in-out infinite}
 @keyframes migo-float{0%,100%{transform:translateY(0) rotate(-5deg)}50%{transform:translateY(-8px) rotate(-3deg)}}
 @media(max-width:700px){.migo-face.migo-mascot-img{width:74px;height:85px}.migo-hero-mascot{width:200px;top:0;right:-18px;opacity:.2}}
+
+/* Larger MIGO in header and homepage — responsive sizing */
+.migo-face.migo-mascot-img{width:132px;height:148px}
+.migo-hero-mascot{width:clamp(245px,30vw,355px);right:2%;top:2%}
+@media(max-width:700px){.migo-face.migo-mascot-img{width:94px;height:108px}.migo-hero-mascot{width:235px;right:-22px;top:1%;opacity:.30}.migo-brand{gap:8px}}
+@media(max-width:390px){.migo-face.migo-mascot-img{width:82px;height:96px}.migo-hero-mascot{width:205px;opacity:.25}}
