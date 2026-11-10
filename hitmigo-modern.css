@@ -1,0 +1,37 @@
+/* Hitmigo visual refresh — draft only. No auth, database or listing logic changes. */
+:root{color-scheme:dark;--navy:#12132d;--panel:#20213f;--yellow:#ffcf36;--ink:#f8f8ff;--muted:#b9bfd4}
+body{background:linear-gradient(160deg,#14142f,#202044 65%,#15152f);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
+header{background:#111229;border-bottom:1px solid #454668;padding:18px 16px 20px;text-align:left;padding-left:max(18px,calc((100vw - 1100px)/2))}
+header h1{font-size:clamp(30px,5vw,44px);letter-spacing:-1px;color:var(--yellow)}
+header p{color:var(--muted)}
+main{max-width:1140px}
+section{background:var(--panel);border:1px solid #414263;border-radius:18px;box-shadow:0 10px 26px #08091a33}
+.hero{position:relative;overflow:hidden;text-align:left;background:radial-gradient(circle at 90% 20%,#4e3b79 0%,transparent 38%),linear-gradient(130deg,#252451,#15152f);padding:clamp(24px,5vw,55px)}
+.hero h2{font-size:clamp(27px,4.5vw,48px);max-width:720px;line-height:1.14}
+.hero p{font-size:18px;color:#dce0f0;max-width:610px}
+.migo-brand{display:flex;align-items:center;gap:12px}
+.migo-face{display:inline-grid;place-items:center;width:68px;height:68px;border-radius:50%;background:var(--yellow);font-size:36px;box-shadow:0 4px 0 #e1a70b,0 0 24px #ffcf3640;animation:migo-pop .65s ease-out both}
+.migo-face span{display:inline-block;animation:migo-wink 5s ease-in-out 1.5s infinite}
+.migo-title{display:block}
+.migo-title h1{margin:0}
+.migo-hero-mascot{position:absolute;right:5%;top:17%;font-size:clamp(75px,13vw,160px);filter:drop-shadow(0 12px 15px #08091a66);transform:rotate(-10deg)}
+.hero h2,.hero p{position:relative;z-index:1}
+.category-card{background:#2a2b4e;color:var(--ink);border:1px solid #4a4c77;border-radius:14px;transition:transform .2s,border-color .2s,background .2s}
+.category-card:hover,.category-card.active{background:#393760;border-color:var(--yellow);transform:translateY(-2px)}
+.category-icon{font-size:32px}
+button{background:var(--yellow);color:#18172c;border-radius:10px;transition:filter .15s,transform .15s}
+button:hover{background:#ffe074;transform:translateY(-1px)}
+.secondary-button{background:#424565;color:white}
+.secondary-button:hover{background:#545878}
+input,select,textarea{background:#f8f9ff;color:#17192e;border-color:#777b9b}
+.ad-card{background:#292a49;border-color:#4d4f72;border-radius:16px}
+.ad-card img{max-height:320px;border-radius:12px}
+.notice{color:#c2c6d9}
+.profile-menu-button{background:#292a49;color:white;border:1px solid #565878}
+.profile-menu-button:hover{background:#3c3d61}
+#profile-section{background:#232443;color:#fff;border:1px solid #565878}
+#profile-section a{color:#ffdf69}
+@keyframes migo-pop{from{opacity:0;transform:scale(.7) rotate(-10deg)}to{opacity:1;transform:scale(1)}}
+@keyframes migo-wink{0%,88%,100%{transform:scale(1)}91%{transform:scale(1,.83)}94%{transform:scale(1)}}
+@media(max-width:700px){header{padding-right:110px}.migo-face{width:52px;height:52px;font-size:28px}.migo-hero-mascot{opacity:.16;right:0;top:8%}.hero h2{max-width:100%}.categories{grid-template-columns:repeat(2,minmax(0,1fr))}.category-card{min-width:0}.ad-card img{max-height:250px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
