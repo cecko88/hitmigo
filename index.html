@@ -243,6 +243,16 @@
         placeholder="Парола"
       >
 
+      <div id="registration-extra">
+        <label for="auth-confirm-password">Потвърди паролата (при регистрация)</label>
+        <input id="auth-confirm-password" type="password" autocomplete="new-password" placeholder="Повтори паролата">
+        <label for="auth-accept-terms" style="display:block; margin:10px 0;">
+          <input id="auth-accept-terms" type="checkbox">
+          Прочетох и приемам <a href="https://github.com/cecko88/hitmigo/blob/draft/legal-registration-2026-11/docs/terms.draft.md" target="_blank" rel="noopener noreferrer">проекта на Общите условия</a>.
+        </label>
+        <p><a href="https://github.com/cecko88/hitmigo/blob/draft/legal-registration-2026-11/docs/privacy-policy.draft.md" target="_blank" rel="noopener noreferrer">Проект на Политика за поверителност</a> — документите още не са окончателни.</p>
+      </div>
+
       <button type="button" onclick="handleLogin()">
         Вход
       </button>
@@ -476,6 +486,23 @@
   async function handleRegister() {
     const email = document.getElementById("auth-email").value.trim();
     const password = document.getElementById("auth-password").value;
+
+    const confirmation = document.getElementById("auth-confirm-password").value;
+    const acceptedTerms = document.getElementById("auth-accept-terms").checked;
+    const message = document.getElementById("auth-message");
+    if (!email || !password) {
+      message.textContent = "Въведи имейл и парола.";
+      return;
+    }
+    if (password !== confirmation) {
+      message.textContent = "Паролите не съвпадат.";
+      return;
+    }
+    if (!acceptedTerms) {
+      message.textContent = "За регистрация трябва да приемеш Общите условия.";
+      return;
+    }
+    message.textContent = "";
 
     try {
       await registerUser(email, password);
