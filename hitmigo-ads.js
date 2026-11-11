@@ -83,30 +83,22 @@
 
     const file = imageInput.files[0];
 
-    if (!file.type.startsWith("image/")) {
-      throw new Error("Можеш да качваш само снимки.");
+    const allowedMimeTypes = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+      "image/heic": "heic"
+    };
+    const safeExtension = allowedMimeTypes[file.type];
+    if (!safeExtension) {
+      throw new Error("Разрешени са само JPG, PNG, WebP, GIF и HEIC снимки.");
     }
 
     const maxSize = 10 * 1024 * 1024;
-
-    if (file.size > maxSize) {
-      throw new Error(
-        "Снимката трябва да е по-малка от 10 MB."
-      );
+    if (!file.size || file.size > maxSize) {
+      throw new Error("Снимката трябва да е с размер над 0 и до 10 MB.");
     }
-
-    const extension = (
-      file.name.split(".").pop() || "jpg"
-    ).toLowerCase().replace(/[^a-z0-9]/g, "");
-
-    const allowedExtensions = [
-      "jpg", "jpeg", "png", "webp", "gif", "heic"
-    ];
-
-    const safeExtension =
-      allowedExtensions.includes(extension)
-        ? extension
-        : "jpg";
 
     const uniqueId =
       typeof crypto !== "undefined" &&
@@ -271,8 +263,13 @@
         );
       }
 
-      await loadAds();
-      await loadMyAds();
+      // The ad is already saved; a refresh failure must not be reported as a publish failure.
+      try {
+        await loadAds();
+        await loadMyAds();
+      } catch (refreshError) {
+        console.warn("Hitmigo post-publish refresh failed:", refreshError);
+      }
 
     } catch (error) {
       console.error("Hitmigo publish error:", error);
@@ -385,6 +382,44 @@
     }
 
     return element;
+  }
+
+  // Reports are submitted by authenticated users; RLS validates ownership and status.
+  async function reportAd(adId, button) {
+    const client = getDb();
+    const { data: auth, error: authError } = await client.auth.getUser();
+    if (authError || !auth?.user) {
+      alert("Влез в профила си, за да докладваш обява.");
+      return;
+    }
+    const reason = prompt("Опиши причината за сигнала (10–500 символа):");
+    if (reason === null) return;
+    const trimmed = reason.trim();
+    if (trimmed.length < 10 || trimmed.length > 500) {
+      alert("Причината трябва да е между 10 и 500 символа.");
+      return;
+    }
+    button.disabled = true;
+    try {
+      const { error } = await client.from("ad_reports").insert({
+        ad_id: adId,
+        reporter_id: auth.user.id,
+        reason: trimmed
+      });
+      if (error) {
+        if (error.code === "23505") {
+          alert("Вече си докладвал тази обява.");
+        } else {
+          throw error;
+        }
+      } else {
+        alert("Сигналът е изпратен. Обявата няма да бъде скрита автоматично.");
+      }
+    } catch (error) {
+      alert("Неуспешно изпращане на сигнал: " + (error.message || "Опитай отново."));
+    } finally {
+      button.disabled = false;
+    }
   }
 
   function renderAd(ad) {
@@ -503,6 +538,12 @@
       card.appendChild(detailsBox);
     }
 
+    const reportButton = makeElement("button", "secondary-button", "⚑ Докладвай");
+    reportButton.type = "button";
+    reportButton.setAttribute("aria-label", "Докладвай обява: " + (ad.title || ""));
+    reportButton.addEventListener("click", () => reportAd(ad.id, reportButton));
+    card.appendChild(reportButton);
+
     return card;
   }
 
@@ -584,6 +625,43 @@
    * и филтрите в index.html.
    */
 
+  // Read-only VIP preview: never treat the browser calculation as authorization.
+  async function renderVipTrialPreview(client, user, box) {
+    const notice = makeElement("div", "vip-trial-preview", "");
+    notice.setAttribute("role", "status");
+    notice.textContent = "VIP: пробната услуга още не е активирана.";
+    box.appendChild(notice);
+
+    const signupMs = Date.parse(user.created_at || "");
+    const trialEndMs = Number.isFinite(signupMs)
+      ? signupMs + 30 * 24 * 60 * 60 * 1000 : null;
+    const trialDescription = trialEndMs == null
+      ? "Началната дата не може да бъде потвърдена."
+      : Date.now() < trialEndMs
+        ? "Ориентировъчно остават " + Math.ceil((trialEndMs - Date.now()) / 86400000) +
+          " дни от 30-дневния прозорец."
+        : "Ориентировъчният 30-дневен прозорец е изтекъл.";
+
+    try {
+      const { count, error } = await client.from("vip_activations")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
+      if (error || count == null) {
+        notice.textContent = "VIP (неактивна услуга): " + trialDescription +
+          " Историята на активациите не може да бъде потвърдена.";
+        return;
+      }
+      notice.textContent = "VIP (неактивна услуга): " + trialDescription +
+        " Записи в историята на VIP: " + count +
+        ". Планиран лимит: 3 пробни активации общо. " +
+        "Броят на пробните активации и правото за активиране ще се потвърждават от сървъра.";
+    } catch (error) {
+      console.warn("Hitmigo VIP preview unavailable:", error);
+      notice.textContent = "VIP (неактивна услуга): " + trialDescription +
+        " Историята на активациите временно не е достъпна.";
+    }
+  }
+
   async function loadMyAds() {
     const box = $("my-ads-list");
     if (!box) return;
@@ -596,7 +674,8 @@
       .eq("user_id", auth.user.id).order("created_at", { ascending: false }).limit(200);
     if (error) { box.textContent = "Грешка: " + error.message; return; }
     box.replaceChildren();
-    if (!data?.length) { box.textContent = "Все още нямаш обяви."; return; }
+    await renderVipTrialPreview(client, auth.user, box);
+    if (!data?.length) { box.appendChild(makeElement("p", "", "Все още нямаш обяви.")); return; }
     for (const ad of data) {
       const card = renderAd(ad);
       const edit = makeElement("button", "", "Редактирай");
@@ -738,7 +817,11 @@
       if (error) throw error;
       if (!data?.length) throw new Error("Обявата не е намерена или нямаш право да я редактираш.");
       cancelAdEdit();
-      await Promise.all([loadMyAds(), loadAds()]);
+      try {
+        await Promise.all([loadMyAds(), loadAds()]);
+      } catch (refreshError) {
+        console.warn("Hitmigo post-edit refresh failed:", refreshError);
+      }
       alert("Промените са запазени успешно.");
     } catch (error) {
       alert("Неуспешно запазване: " + error.message);
@@ -755,8 +838,14 @@
   window.submitAdForm = submitAdForm;
   window.cancelAdEdit = cancelAdEdit;
 
+  const deletingAdIds = new Set();
+
   async function deleteMyAd(ad) {
+    if (!ad?.id || deletingAdIds.has(ad.id)) return;
     if (!confirm("Сигурен ли си, че искаш да изтриеш обявата „" + ad.title + "“?")) return;
+    // Lock before the first await so rapid repeated clicks cannot send duplicate DELETEs.
+    if (deletingAdIds.has(ad.id)) return;
+    deletingAdIds.add(ad.id);
     try {
       const client = getDb();
       const { data: auth, error: authError } = await client.auth.getUser();
@@ -765,9 +854,17 @@
         .eq("id", ad.id).eq("user_id", auth.user.id).select("id");
       if (error) throw error;
       if (!data?.length) throw new Error("Обявата не е намерена или нямаш право да я изтриеш.");
-      await Promise.all([loadMyAds(), loadAds()]);
+      try {
+        await Promise.all([loadMyAds(), loadAds()]);
+      } catch (refreshError) {
+        console.warn("Hitmigo post-delete refresh failed:", refreshError);
+      }
       alert("Обявата е изтрита. Снимката може да остане в хранилището.");
-    } catch (error) { alert("Неуспешно изтриване: " + error.message); }
+    } catch (error) {
+      alert("Неуспешно изтриване: " + error.message);
+    } finally {
+      deletingAdIds.delete(ad.id);
+    }
   }
   window.loadMyAds = loadMyAds;
 
