@@ -838,8 +838,14 @@
   window.submitAdForm = submitAdForm;
   window.cancelAdEdit = cancelAdEdit;
 
+  const deletingAdIds = new Set();
+
   async function deleteMyAd(ad) {
+    if (!ad?.id || deletingAdIds.has(ad.id)) return;
     if (!confirm("Сигурен ли си, че искаш да изтриеш обявата „" + ad.title + "“?")) return;
+    // Lock before the first await so rapid repeated clicks cannot send duplicate DELETEs.
+    if (deletingAdIds.has(ad.id)) return;
+    deletingAdIds.add(ad.id);
     try {
       const client = getDb();
       const { data: auth, error: authError } = await client.auth.getUser();
@@ -854,7 +860,11 @@
         console.warn("Hitmigo post-delete refresh failed:", refreshError);
       }
       alert("Обявата е изтрита. Снимката може да остане в хранилището.");
-    } catch (error) { alert("Неуспешно изтриване: " + error.message); }
+    } catch (error) {
+      alert("Неуспешно изтриване: " + error.message);
+    } finally {
+      deletingAdIds.delete(ad.id);
+    }
   }
   window.loadMyAds = loadMyAds;
 
