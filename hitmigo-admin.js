@@ -13,7 +13,7 @@
       container.textContent = "Нямаш администраторски достъп.";
       return;
     }
-    container.innerHTML = '<h2>Управление на обяви</h2><button type="button" data-refresh>Обнови списъка</button><p data-status>Зареждане…</p><section aria-label="Сигнали за обяви"><h3>Докладвани обяви</h3><p data-reports-status>Зареждане…</p><div data-reports></div></section><div data-ads></div><nav aria-label="Страници на обявите"><button type="button" data-prev>Предишна</button> <span data-page></span> <button type="button" data-next>Следваща</button></nav>';
+    container.innerHTML = '<h2>Статистика</h2><section aria-label="Статистика на сайта" data-stats><p data-stat-ads>Обяви: зареждане…</p><p data-stat-active>Видими обяви: зареждане…</p><p data-stat-hidden>Скрити обяви: зареждане…</p><p data-stat-new>Нови обяви за 7 дни: зареждане…</p><p>Регистрирани потребители: очаква защитена сървърна статистика</p><p>Посещения: очаква свързване на аналитична услуга</p><p>VIP: очаква завършена VIP система</p></section><h2>Управление на обяви</h2><button type="button" data-refresh>Обнови списъка</button><p data-status>Зареждане…</p><section aria-label="Сигнали за обяви"><h3>Докладвани обяви</h3><p data-reports-status>Зареждане…</p><div data-reports></div></section><div data-ads></div><nav aria-label="Страници на обявите"><button type="button" data-prev>Предишна</button> <span data-page></span> <button type="button" data-next>Следваща</button></nav>';
     const status = container.querySelector("[data-status]");
     const list = container.querySelector("[data-ads]");
     const reportsStatus = container.querySelector("[data-reports-status]");
@@ -24,9 +24,26 @@
     const prev = container.querySelector("[data-prev]");
     const next = container.querySelector("[data-next]");
     const pageLabel = container.querySelector("[data-page]");
-    container.querySelector("[data-refresh]").addEventListener("click", () => { refreshReports(); refresh(); });
+    container.querySelector("[data-refresh]").addEventListener("click", () => { refreshStats(); refreshReports(); refresh(); });
     prev.addEventListener("click", () => { if (page > 0) { page--; refresh(); } });
     next.addEventListener("click", () => { if (!next.disabled) { page++; refresh(); } });
+    async function refreshStats() {
+      const since = new Date(Date.now() - 7 * 86400000).toISOString();
+      const queries = [
+        db.from("ads").select("id", { count: "exact", head: true }),
+        db.from("ads").select("id", { count: "exact", head: true }).eq("is_hidden", false),
+        db.from("ads").select("id", { count: "exact", head: true }).eq("is_hidden", true),
+        db.from("ads").select("id", { count: "exact", head: true }).gte("created_at", since)
+      ];
+      const selectors = ["[data-stat-ads]", "[data-stat-active]", "[data-stat-hidden]", "[data-stat-new]"];
+      const labels = ["Общо обяви", "Видими обяви", "Скрити обяви", "Нови обяви за 7 дни"];
+      const results = await Promise.allSettled(queries);
+      results.forEach((result, i) => {
+        const value = result.status === "fulfilled" ? result.value : null;
+        container.querySelector(selectors[i]).textContent = labels[i] + ": " +
+          (value && !value.error && typeof value.count === "number" ? value.count : "няма достъп до данните");
+      });
+    }
     async function refreshReports() {
       reportsStatus.textContent = "Зареждане на сигналите…";
       const { data: reports, error } = await db.from("ad_reports")
@@ -97,6 +114,7 @@
       await refresh();
       await refreshReports();
     });
+    await refreshStats();
     await refreshReports();
     await refresh();
   }
