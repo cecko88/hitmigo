@@ -387,6 +387,44 @@
     return element;
   }
 
+  // Reports are submitted by authenticated users; RLS validates ownership and status.
+  async function reportAd(adId, button) {
+    const client = getDb();
+    const { data: auth, error: authError } = await client.auth.getUser();
+    if (authError || !auth?.user) {
+      alert("Влез в профила си, за да докладваш обява.");
+      return;
+    }
+    const reason = prompt("Опиши причината за сигнала (10–500 символа):");
+    if (reason === null) return;
+    const trimmed = reason.trim();
+    if (trimmed.length < 10 || trimmed.length > 500) {
+      alert("Причината трябва да е между 10 и 500 символа.");
+      return;
+    }
+    button.disabled = true;
+    try {
+      const { error } = await client.from("ad_reports").insert({
+        ad_id: adId,
+        reporter_id: auth.user.id,
+        reason: trimmed
+      });
+      if (error) {
+        if (error.code === "23505") {
+          alert("Вече си докладвал тази обява.");
+        } else {
+          throw error;
+        }
+      } else {
+        alert("Сигналът е изпратен. Обявата няма да бъде скрита автоматично.");
+      }
+    } catch (error) {
+      alert("Неуспешно изпращане на сигнал: " + (error.message || "Опитай отново."));
+    } finally {
+      button.disabled = false;
+    }
+  }
+
   function renderAd(ad) {
     const card = makeElement("article", "ad-card");
 
@@ -502,6 +540,12 @@
 
       card.appendChild(detailsBox);
     }
+
+    const reportButton = makeElement("button", "secondary-button", "⚑ Докладвай");
+    reportButton.type = "button";
+    reportButton.setAttribute("aria-label", "Докладвай обява: " + (ad.title || ""));
+    reportButton.addEventListener("click", () => reportAd(ad.id, reportButton));
+    card.appendChild(reportButton);
 
     return card;
   }
