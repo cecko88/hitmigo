@@ -548,6 +548,25 @@
 <script src="hitmigo-filters.js?v=7"></script>
 <script src="hitmigo-advanced-filters.js?v=1"></script>
 <script src="hitmigo-ads.js?v=12"></script>
+<!-- Admin panel preview: shown only after server-side admin check. -->
+<section id="hitmigo-admin-panel" hidden style="max-width:1100px;margin:24px auto;padding:16px"></section>
+<script src="hitmigo-admin.js?v=1"></script>
+<script>
+  (async function () {
+    const panel = document.getElementById("hitmigo-admin-panel");
+    if (typeof db === "undefined" || !window.HitmigoAdmin) return;
+    async function checkAdmin() {
+      const { data: auth } = await db.auth.getUser();
+      if (!auth?.user) { panel.hidden = true; panel.replaceChildren(); return; }
+      const { data: allowed, error } = await db.rpc("is_hitmigo_admin");
+      panel.hidden = !!error || allowed !== true;
+      if (!panel.hidden) await window.HitmigoAdmin.mount(panel);
+      else panel.replaceChildren();
+    }
+    await checkAdmin();
+    db.auth.onAuthStateChange(() => setTimeout(checkAdmin, 0));
+  })();
+</script>
 
 <script>
   (function () {
