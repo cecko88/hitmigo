@@ -13,17 +13,36 @@
       container.textContent = "Нямаш администраторски достъп.";
       return;
     }
-    container.innerHTML = '<h2>Управление на обяви</h2><button type="button" data-refresh>Обнови списъка</button><p data-status>Зареждане…</p><div data-ads></div>';
+    container.innerHTML = '<h2>Управление на обяви</h2><button type="button" data-refresh>Обнови списъка</button><p data-status>Зареждане…</p><div data-ads></div><nav aria-label="Страници на обявите"><button type="button" data-prev>Предишна</button> <span data-page></span> <button type="button" data-next>Следваща</button></nav>';
     const status = container.querySelector("[data-status]");
     const list = container.querySelector("[data-ads]");
+    const pageSize = 25;
+    let page = 0;
+    let requestId = 0;
+    const prev = container.querySelector("[data-prev]");
+    const next = container.querySelector("[data-next]");
+    const pageLabel = container.querySelector("[data-page]");
     container.querySelector("[data-refresh]").addEventListener("click", () => refresh());
+    prev.addEventListener("click", () => { if (page > 0) { page--; refresh(); } });
+    next.addEventListener("click", () => { if (!next.disabled) { page++; refresh(); } });
     async function refresh() {
-      const { data, error } = await db.from("ads")
-        .select("id,title,city,is_hidden,created_at")
-        .order("created_at", { ascending: false }).limit(100);
-      if (error) { status.textContent = "Грешка при зареждане: " + error.message; return; }
+      const currentRequest = ++requestId;
+      prev.disabled = next.disabled = true;
+      status.textContent = "Зареждане…";
+      const { data, error, count } = await db.from("ads")
+        .select("id,title,city,is_hidden,created_at", { count: "exact" })
+        .order("created_at", { ascending: false })
+        .order("id", { ascending: false })
+        .range(page * pageSize, (page + 1) * pageSize - 1);
+      if (currentRequest !== requestId) return;
+      if (error) { status.textContent = "Грешка при зареждане: " + error.message; prev.disabled = page === 0; return; }
       if (!Array.isArray(data)) { status.textContent = "Няма достъпни данни за обявите."; return; }
-      status.textContent = "Последните " + data.length + " обяви";
+      const total = typeof count === "number" ? count : null;
+      if (data.length === 0 && page > 0) { page--; await refresh(); return; }
+      status.textContent = total === null ? "Показани " + data.length + " обяви" : "Общо " + total + " обяви";
+      pageLabel.textContent = "Страница " + (page + 1) + (total === null ? "" : " от " + Math.max(1, Math.ceil(total / pageSize)));
+      prev.disabled = page === 0;
+      next.disabled = total === null ? data.length < pageSize : (page + 1) * pageSize >= total;
       list.innerHTML = data.map(ad =>
         '<article style="padding:12px;border-bottom:1px solid #ddd">' +
         '<strong>' + escapeHtml(ad.title) + '</strong> — ' + escapeHtml(ad.city) +
