@@ -83,30 +83,22 @@
 
     const file = imageInput.files[0];
 
-    if (!file.type.startsWith("image/")) {
-      throw new Error("Можеш да качваш само снимки.");
+    const allowedMimeTypes = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+      "image/heic": "heic"
+    };
+    const safeExtension = allowedMimeTypes[file.type];
+    if (!safeExtension) {
+      throw new Error("Разрешени са само JPG, PNG, WebP, GIF и HEIC снимки.");
     }
 
     const maxSize = 10 * 1024 * 1024;
-
-    if (file.size > maxSize) {
-      throw new Error(
-        "Снимката трябва да е по-малка от 10 MB."
-      );
+    if (!file.size || file.size > maxSize) {
+      throw new Error("Снимката трябва да е с размер над 0 и до 10 MB.");
     }
-
-    const extension = (
-      file.name.split(".").pop() || "jpg"
-    ).toLowerCase().replace(/[^a-z0-9]/g, "");
-
-    const allowedExtensions = [
-      "jpg", "jpeg", "png", "webp", "gif", "heic"
-    ];
-
-    const safeExtension =
-      allowedExtensions.includes(extension)
-        ? extension
-        : "jpg";
 
     const uniqueId =
       typeof crypto !== "undefined" &&
@@ -271,8 +263,13 @@
         );
       }
 
-      await loadAds();
-      await loadMyAds();
+      // The ad is already saved; a refresh failure must not be reported as a publish failure.
+      try {
+        await loadAds();
+        await loadMyAds();
+      } catch (refreshError) {
+        console.warn("Hitmigo post-publish refresh failed:", refreshError);
+      }
 
     } catch (error) {
       console.error("Hitmigo publish error:", error);
@@ -738,7 +735,11 @@
       if (error) throw error;
       if (!data?.length) throw new Error("Обявата не е намерена или нямаш право да я редактираш.");
       cancelAdEdit();
-      await Promise.all([loadMyAds(), loadAds()]);
+      try {
+        await Promise.all([loadMyAds(), loadAds()]);
+      } catch (refreshError) {
+        console.warn("Hitmigo post-edit refresh failed:", refreshError);
+      }
       alert("Промените са запазени успешно.");
     } catch (error) {
       alert("Неуспешно запазване: " + error.message);
@@ -755,8 +756,14 @@
   window.submitAdForm = submitAdForm;
   window.cancelAdEdit = cancelAdEdit;
 
+  const deletingAdIds = new Set();
+
   async function deleteMyAd(ad) {
+    if (!ad?.id || deletingAdIds.has(ad.id)) return;
     if (!confirm("Сигурен ли си, че искаш да изтриеш обявата „" + ad.title + "“?")) return;
+    // Lock before the first await so rapid repeated clicks cannot send duplicate DELETEs.
+    if (deletingAdIds.has(ad.id)) return;
+    deletingAdIds.add(ad.id);
     try {
       const client = getDb();
       const { data: auth, error: authError } = await client.auth.getUser();
@@ -765,9 +772,17 @@
         .eq("id", ad.id).eq("user_id", auth.user.id).select("id");
       if (error) throw error;
       if (!data?.length) throw new Error("Обявата не е намерена или нямаш право да я изтриеш.");
-      await Promise.all([loadMyAds(), loadAds()]);
+      try {
+        await Promise.all([loadMyAds(), loadAds()]);
+      } catch (refreshError) {
+        console.warn("Hitmigo post-delete refresh failed:", refreshError);
+      }
       alert("Обявата е изтрита. Снимката може да остане в хранилището.");
-    } catch (error) { alert("Неуспешно изтриване: " + error.message); }
+    } catch (error) {
+      alert("Неуспешно изтриване: " + error.message);
+    } finally {
+      deletingAdIds.delete(ad.id);
+    }
   }
   window.loadMyAds = loadMyAds;
 
