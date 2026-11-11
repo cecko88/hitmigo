@@ -628,6 +628,33 @@
    * и филтрите в index.html.
    */
 
+  // VIP preview is informational only. Activation must be enforced by a server RPC.
+  async function renderVipTrialPreview(client, user, box) {
+    const notice = makeElement("div", "vip-trial-preview", "");
+    notice.setAttribute("role", "status");
+    notice.textContent = "Проверка на пробния VIP период...";
+    box.appendChild(notice);
+
+    const signupMs = Date.parse(user.created_at || "");
+    if (!Number.isFinite(signupMs)) {
+      notice.textContent = "VIP: началната дата не може да бъде потвърдена.";
+      return;
+    }
+    const expiresMs = signupMs + 30 * 24 * 60 * 60 * 1000;
+    const { count, error } = await client.from("vip_activations")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+    if (error || count == null) {
+      notice.textContent = "VIP: историята на активациите не е достъпна. Пробната услуга още не е активирана.";
+      return;
+    }
+    const remainingDays = Math.max(0, Math.ceil((expiresMs - Date.now()) / 86400000));
+    notice.textContent = "VIP (информация, неактивна услуга): " +
+      (remainingDays ? remainingDays + " дни до края на 30-дневния период." : "30-дневният период е изтекъл.") +
+      " Отчетени активации: " + count + ". Лимит: 3 общо. " +
+      "Окончателното право на активация ще се проверява от сървъра.";
+  }
+
   async function loadMyAds() {
     const box = $("my-ads-list");
     if (!box) return;
@@ -640,7 +667,8 @@
       .eq("user_id", auth.user.id).order("created_at", { ascending: false }).limit(200);
     if (error) { box.textContent = "Грешка: " + error.message; return; }
     box.replaceChildren();
-    if (!data?.length) { box.textContent = "Все още нямаш обяви."; return; }
+    await renderVipTrialPreview(client, auth.user, box);
+    if (!data?.length) { box.appendChild(makeElement("p", "", "Все още нямаш обяви.")); return; }
     for (const ad of data) {
       const card = renderAd(ad);
       const edit = makeElement("button", "", "Редактирай");
