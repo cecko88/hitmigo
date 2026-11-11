@@ -856,7 +856,11 @@
         .eq("id", ad.id).eq("user_id", auth.user.id).select("id");
       if (error) throw error;
       if (!data?.length) throw new Error("Обявата не е намерена или нямаш право да я изтриеш.");
-      await Promise.all([loadMyAds(), loadAds()]);
+      try {
+        await Promise.all([loadMyAds(), loadAds()]);
+      } catch (refreshError) {
+        console.warn("Hitmigo post-delete refresh failed:", refreshError);
+      }
       alert("Обявата е изтрита. Снимката може да остане в хранилището.");
     } catch (error) { alert("Неуспешно изтриване: " + error.message); }
   }
