@@ -271,8 +271,13 @@
         );
       }
 
-      await loadAds();
-      await loadMyAds();
+      // The ad is already saved; a refresh failure must not be reported as a publish failure.
+      try {
+        await loadAds();
+        await loadMyAds();
+      } catch (refreshError) {
+        console.warn("Hitmigo post-publish refresh failed:", refreshError);
+      }
 
     } catch (error) {
       console.error("Hitmigo publish error:", error);
@@ -820,7 +825,11 @@
       if (error) throw error;
       if (!data?.length) throw new Error("Обявата не е намерена или нямаш право да я редактираш.");
       cancelAdEdit();
-      await Promise.all([loadMyAds(), loadAds()]);
+      try {
+        await Promise.all([loadMyAds(), loadAds()]);
+      } catch (refreshError) {
+        console.warn("Hitmigo post-edit refresh failed:", refreshError);
+      }
       alert("Промените са запазени успешно.");
     } catch (error) {
       alert("Неуспешно запазване: " + error.message);
