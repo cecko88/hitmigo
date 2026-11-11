@@ -83,30 +83,22 @@
 
     const file = imageInput.files[0];
 
-    if (!file.type.startsWith("image/")) {
-      throw new Error("Можеш да качваш само снимки.");
+    const allowedMimeTypes = {
+      "image/jpeg": "jpg",
+      "image/png": "png",
+      "image/webp": "webp",
+      "image/gif": "gif",
+      "image/heic": "heic"
+    };
+    const safeExtension = allowedMimeTypes[file.type];
+    if (!safeExtension) {
+      throw new Error("Разрешени са само JPG, PNG, WebP, GIF и HEIC снимки.");
     }
 
     const maxSize = 10 * 1024 * 1024;
-
-    if (file.size > maxSize) {
-      throw new Error(
-        "Снимката трябва да е по-малка от 10 MB."
-      );
+    if (!file.size || file.size > maxSize) {
+      throw new Error("Снимката трябва да е с размер над 0 и до 10 MB.");
     }
-
-    const extension = (
-      file.name.split(".").pop() || "jpg"
-    ).toLowerCase().replace(/[^a-z0-9]/g, "");
-
-    const allowedExtensions = [
-      "jpg", "jpeg", "png", "webp", "gif", "heic"
-    ];
-
-    const safeExtension =
-      allowedExtensions.includes(extension)
-        ? extension
-        : "jpg";
 
     const uniqueId =
       typeof crypto !== "undefined" &&
