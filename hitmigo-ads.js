@@ -756,6 +756,23 @@
   window.submitAdForm = submitAdForm;
   window.cancelAdEdit = cancelAdEdit;
 
+  // Only delete files in our own ad-images bucket and authenticated user's folder.
+  function ownedImagePath(publicUrl, userId) {
+    if (!publicUrl || !userId) return null;
+    try {
+      const url = new URL(publicUrl);
+      const base = new URL(getDb().storage.from("ad-images").getPublicUrl("").data.publicUrl);
+      if (url.origin !== base.origin) return null;
+      const prefix = "/storage/v1/object/public/ad-images/";
+      if (!url.pathname.startsWith(prefix)) return null;
+      const path = decodeURIComponent(url.pathname.slice(prefix.length));
+      if (!path.startsWith(userId + "/") || path.includes("..") || path.includes("\\") || path.includes("%")) return null;
+      return path;
+    } catch (_) {
+      return null;
+    }
+  }
+
   const deletingAdIds = new Set();
 
   async function deleteMyAd(ad) {
@@ -772,12 +789,26 @@
         .eq("id", ad.id).eq("user_id", auth.user.id).select("id");
       if (error) throw error;
       if (!data?.length) throw new Error("Обявата не е намерена или нямаш право да я изтриеш.");
+      // Cleanup is best-effort, and must never turn a successful ad deletion into failure.
+      let photoCleanupFailed = false;
+      const imagePath = ownedImagePath(ad.image_url, auth.user.id);
+      if (imagePath) {
+        try {
+          const { error: storageError } = await client.storage.from("ad-images").remove([imagePath]);
+          if (storageError) throw storageError;
+        } catch (storageError) {
+          photoCleanupFailed = true;
+          console.warn("Hitmigo photo cleanup failed:", storageError);
+        }
+      } else if (ad.image_url) {
+        photoCleanupFailed = true;
+      }
       try {
         await Promise.all([loadMyAds(), loadAds()]);
       } catch (refreshError) {
         console.warn("Hitmigo post-delete refresh failed:", refreshError);
       }
-      alert("Обявата е изтрита. Снимката може да остане в хранилището.");
+      alert(photoCleanupFailed ? "Обявата е изтрита. Снимката може да е останала в хранилището." : "Обявата е изтрита успешно.");
     } catch (error) {
       alert("Неуспешно изтриване: " + error.message);
     } finally {
