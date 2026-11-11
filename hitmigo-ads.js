@@ -628,31 +628,41 @@
    * и филтрите в index.html.
    */
 
-  // VIP preview is informational only. Activation must be enforced by a server RPC.
+  // Read-only VIP preview: never treat the browser calculation as authorization.
   async function renderVipTrialPreview(client, user, box) {
     const notice = makeElement("div", "vip-trial-preview", "");
     notice.setAttribute("role", "status");
-    notice.textContent = "Проверка на пробния VIP период...";
+    notice.textContent = "VIP: пробната услуга още не е активирана.";
     box.appendChild(notice);
 
     const signupMs = Date.parse(user.created_at || "");
-    if (!Number.isFinite(signupMs)) {
-      notice.textContent = "VIP: началната дата не може да бъде потвърдена.";
-      return;
+    const trialEndMs = Number.isFinite(signupMs)
+      ? signupMs + 30 * 24 * 60 * 60 * 1000 : null;
+    const trialDescription = trialEndMs == null
+      ? "Началната дата не може да бъде потвърдена."
+      : Date.now() < trialEndMs
+        ? "Ориентировъчно остават " + Math.ceil((trialEndMs - Date.now()) / 86400000) +
+          " дни от 30-дневния прозорец."
+        : "Ориентировъчният 30-дневен прозорец е изтекъл.";
+
+    try {
+      const { count, error } = await client.from("vip_activations")
+        .select("id", { count: "exact", head: true })
+        .eq("user_id", user.id);
+      if (error || count == null) {
+        notice.textContent = "VIP (неактивна услуга): " + trialDescription +
+          " Историята на активациите не може да бъде потвърдена.";
+        return;
+      }
+      notice.textContent = "VIP (неактивна услуга): " + trialDescription +
+        " Записи в историята на VIP: " + count +
+        ". Планиран лимит: 3 пробни активации общо. " +
+        "Броят на пробните активации и правото за активиране ще се потвърждават от сървъра.";
+    } catch (error) {
+      console.warn("Hitmigo VIP preview unavailable:", error);
+      notice.textContent = "VIP (неактивна услуга): " + trialDescription +
+        " Историята на активациите временно не е достъпна.";
     }
-    const expiresMs = signupMs + 30 * 24 * 60 * 60 * 1000;
-    const { count, error } = await client.from("vip_activations")
-      .select("id", { count: "exact", head: true })
-      .eq("user_id", user.id);
-    if (error || count == null) {
-      notice.textContent = "VIP: историята на активациите не е достъпна. Пробната услуга още не е активирана.";
-      return;
-    }
-    const remainingDays = Math.max(0, Math.ceil((expiresMs - Date.now()) / 86400000));
-    notice.textContent = "VIP (информация, неактивна услуга): " +
-      (remainingDays ? remainingDays + " дни до края на 30-дневния период." : "30-дневният период е изтекъл.") +
-      " Отчетени активации: " + count + ". Лимит: 3 общо. " +
-      "Окончателното право на активация ще се проверява от сървъра.";
   }
 
   async function loadMyAds() {
