@@ -462,7 +462,7 @@
   }
   function toggleProfileMenu() { window.location.hash = "profile"; renderProfileRoute(); }
   function closeProfilePage() { history.pushState(null, "", window.location.pathname + window.location.search); renderProfileRoute(); }
-  window.addEventListener("hashchange", renderProfileRoute);
+  document.addEventListener("click", (event) => {\n    if (document.body.classList.contains("profile-page") && event.target.closest("#my-ads-list button")) {\n      if (event.target.textContent.trim() === "Редактирай") closeProfilePage();\n    }\n  }, true);\n  window.addEventListener("hashchange", renderProfileRoute);
   window.addEventListener("popstate", renderProfileRoute);
   document.addEventListener("DOMContentLoaded", renderProfileRoute);
 
