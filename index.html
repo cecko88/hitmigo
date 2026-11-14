@@ -339,7 +339,8 @@
   </section>
 
   <section id="ads-section">
-    <h2>Обяви</h2>
+    <button type="button" id="category-back" class="secondary-button" style="display:none">← Всички категории</button>
+    <h2 id="ads-heading">Обяви</h2>
 
     <label for="ads-search">Търсене</label>
     <input
@@ -562,6 +563,11 @@
 
     const browseFilters =
       document.getElementById("browse-filters");
+    const backButton = document.getElementById("category-back");
+    const adsHeading = document.getElementById("ads-heading");
+    const categoryHome = document.getElementById("categories-section");
+    const hero = document.querySelector(".hero");
+    const publishSection = document.getElementById("publish-section");
 
     const cards = document.querySelectorAll(
       "[data-browse-category]"
@@ -628,13 +634,28 @@
       }
     }
 
-    function selectCategory(name) {
+    function showCategoryView(name) {
+      const selected = Boolean(name);
+      adsHeading.textContent = selected ? `Категория: ${name}` : "Обяви";
+      backButton.style.display = selected ? "inline-block" : "none";
+      categoryHome.style.display = selected ? "none" : "";
+      if (hero) hero.style.display = selected ? "none" : "";
+      if (publishSection) publishSection.style.display = selected ? "none" : "";
+      document.title = selected ? `${name} | Hitmigo` : "Hitmigo";
+    }
+
+    function selectCategory(name, updateUrl = true) {
       activeCategory = name;
       activeSubcategory = "";
 
       categorySelect.value = name;
       fillSubcategories();
       refreshCards();
+      showCategoryView(name);
+      if (updateUrl) {
+        const next = name ? `#category=${encodeURIComponent(name)}` : window.location.pathname + window.location.search;
+        history.pushState(null, "", next);
+      }
 
       browseFilters.style.display =
         name ? "block" : "none";
@@ -644,6 +665,20 @@
       document.getElementById("ads-section")
         .scrollIntoView({ behavior: "smooth" });
     }
+
+    function restoreCategoryFromUrl() {
+      const match = window.location.hash.match(/^#category=(.*)$/);
+      let name = "";
+      if (match) {
+        try { name = decodeURIComponent(match[1]); } catch (_) { name = ""; }
+      }
+      if (typeof HITMIGO_CATEGORIES !== "undefined" && !Object.prototype.hasOwnProperty.call(HITMIGO_CATEGORIES, name)) name = "";
+      selectCategory(name, false);
+    }
+
+    window.addEventListener("popstate", restoreCategoryFromUrl);
+    window.addEventListener("hashchange", restoreCategoryFromUrl);
+    backButton.addEventListener("click", () => selectCategory(""));
 
     cards.forEach((card) => {
       card.addEventListener("click", () => {
@@ -673,6 +708,7 @@
       });
 
     fillCategories();
+    restoreCategoryFromUrl();
 
     if (typeof loadAds === "function") {
       loadAds();
