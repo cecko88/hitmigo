@@ -227,7 +227,7 @@
 <header>
   <div class="migo-brand"><img class="migo-face migo-mascot-img" src="migo-mascot.svg" alt="Миго намига, показва палец нагоре и носи шапка MIGO" width="108" height="122"><div class="migo-title"><h1>Hitmigo</h1><p>Обяви, които намираш мигом! 👍</p></div></div>
   <div class="profile-menu-wrap">
-    <button type="button" id="profile-menu-button" class="profile-menu-button" onclick="toggleProfileMenu()">👤 Профил</button>
+    <a id="profile-menu-button" class="profile-menu-button" href="#profile">👤 Моят профил</a>
   </div>
 </header>
 
@@ -479,6 +479,9 @@
       if (event.target.textContent.trim() === "Редактирай") closeProfilePage();
     }
   }, true);
+  document.addEventListener("click", (event) => {
+    if (event.target.closest('a[href="#profile"]')) requestAnimationFrame(renderProfileRoute);
+  });
   window.addEventListener("hashchange", renderProfileRoute);
   window.addEventListener("popstate", renderProfileRoute);
   document.addEventListener("DOMContentLoaded", renderProfileRoute);
