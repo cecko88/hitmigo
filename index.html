@@ -673,11 +673,14 @@
 
       applyBrowseFilters();
 
-      document.getElementById("ads-section")
-        .scrollIntoView({ behavior: "smooth" });
+      if (name && window.location.hash !== "#profile") {
+        document.getElementById("ads-section")
+          .scrollIntoView({ behavior: "smooth" });
+      }
     }
 
     function restoreCategoryFromUrl() {
+      if (window.location.hash === "#profile") return;
       const match = window.location.hash.match(/^#category=(.*)$/);
       let name = "";
       if (match) {
