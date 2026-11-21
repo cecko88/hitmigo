@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="bg"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Обява | Hitmigo</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f5f7fa;color:#182536;font:16px/1.55 system-ui,Arial,sans-serif}header{background:#fff;border-bottom:1px solid #dde3ea;padding:18px max(20px,calc((100% - 1040px)/2))}header a{color:#155bb4;text-decoration:none;font-weight:700}main{max-width:1040px;margin:24px auto;padding:0 18px}.panel{background:white;border:1px solid #e1e5ec;border-radius:14px;padding:24px;margin:14px 0}h1{font-size:clamp(24px,4vw,36px);margin:0 0 12px;overflow-wrap:anywhere}.price{font-size:28px;font-weight:800;color:#1565c0}.meta{color:#566779}.photo{width:100%;max-height:560px;object-fit:contain;background:#f3f5f7;border-radius:10px}.description{white-space:pre-wrap;overflow-wrap:anywhere}.attrs{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}.attr{background:#f5f7fa;padding:10px;border-radius:8px}.back{display:inline-block;margin:6px 0 18px;color:#155bb4}.notice{color:#8b2525}a:focus-visible{outline:3px solid #155bb4}
+</style></head><body><header><a href="./">Hitmigo</a></header><main>
+<a class="back" href="./">← Назад към обявите</a><div id="status" role="status">Зареждане на обявата...</div><div id="detail" hidden></div>
+</main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="hitmigo-auth.js"></script>
+<script>
+(function(){
+"use strict";
+const status=document.getElementById("status"),detail=document.getElementById("detail");
+function node(tag,cls,value){const e=document.createElement(tag);if(cls)e.className=cls;if(value!==undefined&&value!==null)e.textContent=String(value);return e;}
+function price(value){const n=Number(value);return value===null||value===undefined||!Number.isFinite(n)?"Цена по договаряне":n===0?"Безплатно":new Intl.NumberFormat("bg-BG",{style:"currency",currency:"EUR"}).format(n);}
+async function start(){
+ const id=new URLSearchParams(location.search).get("id");
+ if(!id||!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)){status.textContent="Невалиден адрес на обява.";status.className="notice";return;}
+ try{
+  const {data:ad,error}=await db.from("ads").select("id,title,description,price,category,city,image_url,attributes,car_brand,car_model,created_at").eq("id",id).maybeSingle();
+  if(error)throw error;
+  if(!ad){status.textContent="Обявата не е намерена или вече е изтрита.";return;}
+  document.title=(ad.title||"Обява")+" | Hitmigo";
+  const heading=node("h1","",ad.title||"Обява"),box=node("section","panel");
+  box.append(heading,node("div","price",price(ad.price)));
+  if(ad.image_url){const img=node("img","photo");img.src=ad.image_url;img.alt=ad.title||"Снимка на обявата";img.referrerPolicy="no-referrer";img.onerror=()=>img.remove();box.append(img);}
+  box.append(node("p","meta",[ad.category,ad.city].filter(Boolean).join(" • ")));
+  if(ad.created_at){const d=new Date(ad.created_at);if(!Number.isNaN(d.getTime()))box.append(node("p","meta","Публикувана: "+new Intl.DateTimeFormat("bg-BG",{dateStyle:"medium"}).format(d)));}
+  detail.append(box);
+  const desc=node("section","panel");desc.append(node("h2","","Описание"),node("p","description",ad.description||"Няма добавено описание."));detail.append(desc);
+  const attributes=ad.attributes&&typeof ad.attributes==="object"&&!Array.isArray(ad.attributes)?ad.attributes:{};
+  const values=Object.entries(attributes).filter(([k,v])=>v!==null&&v!==undefined&&String(v).trim());
+  if(ad.car_brand&&!attributes["Марка"])values.push(["Марка",ad.car_brand]);
+  if(ad.car_model&&!attributes["Модел"])values.push(["Модел",ad.car_model]);
+  if(values.length){const section=node("section","panel"),grid=node("div","attrs");section.append(node("h2","","Характеристики"));for(const [key,value] of values){grid.append(node("div","attr",key+": "+String(value)));}section.append(grid);detail.append(section);}
+  status.hidden=true;detail.hidden=false;
+ }catch(err){console.error("Hitmigo detail:",err);status.textContent="Не успяхме да заредим обявата. Опитай отново.";status.className="notice";}
+}
+start();
+})();
+</script></body></html>
