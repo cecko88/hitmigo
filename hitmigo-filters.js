@@ -172,6 +172,51 @@
 
     if (!filters) return;
 
+    if (category.value === "Техника" &&
+        document.getElementById("ad-subcategory")?.value === "Телевизори") {
+      // TV-specific controls instead of computer RAM, storage or AC capacity.
+      const tvBrands = ["Samsung", "LG", "Sony", "Philips", "TCL", "Hisense",
+        "Panasonic", "Sharp", "Toshiba", "Xiaomi", "Grundig", "Finlux",
+        "JVC", "Hitachi", "NEO", "Vestel", "Другa марка"];
+      const brand = select("Избери марка", tvBrands);
+      brand.dataset.adAttribute = "Марка";
+      const brandBox = wrap("Марка", brand);
+      const custom = input("Напиши друга марка");
+      custom.dataset.adAttribute = "Марка";
+      custom.disabled = true;
+      custom.hidden = true;
+      brandBox.appendChild(custom);
+      brand.addEventListener("change", () => {
+        const other = brand.value === "Другa марка";
+        brand.disabled = other;
+        brand.removeAttribute("data-ad-attribute");
+        if (!other) brand.dataset.adAttribute = "Марка";
+        custom.disabled = !other;
+        custom.hidden = !other;
+        if (other) {
+          const back = document.createElement("button");
+          back.type = "button";
+          back.textContent = "Избери марка от списъка";
+          back.addEventListener("click", () => {
+            custom.value = "";
+            custom.hidden = true;
+            custom.disabled = true;
+            brand.disabled = false;
+            brand.value = "";
+            brand.dataset.adAttribute = "Марка";
+            back.remove();
+          });
+          brandBox.appendChild(back);
+          custom.focus();
+        }
+      });
+      container.appendChild(brandBox);
+      ["Модел", "Състояние", "Гаранция", "Размер на екрана (инча)", "Цвят"].forEach(name => {
+        container.appendChild(regularField(name, filters[name]));
+      });
+      return;
+    }
+
     if (category.value === "Автомобили") {
       const brands = Object.keys(catalog)
         .sort((a, b) => a.localeCompare(b, "bg"));
