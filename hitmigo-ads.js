@@ -406,6 +406,18 @@
       "",
       ad.title || "Обява"
     );
+    // Every ad has its own shareable details page.
+    if (ad.id) {
+      const url = "ad.html?id=" + encodeURIComponent(ad.id);
+      const link = makeElement("a", "ad-detail-link", ad.title || "Обява");
+      link.href = url;
+      heading.replaceChildren(link);
+      card.style.cursor = "pointer";
+      card.addEventListener("click", (event) => {
+        if (event.target.closest("button, a, input, select, textarea")) return;
+        window.location.href = url;
+      });
+    }
 
     const price = makeElement(
       "p",
