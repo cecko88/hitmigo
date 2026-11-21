@@ -768,6 +768,24 @@
       const client = getDb();
       const { data: auth, error: authError } = await client.auth.getUser();
       if (authError || !auth?.user) throw new Error("Влез в профила си.");
+      // Resolve only this user's image inside the expected public Storage bucket.
+      // Never remove arbitrary URLs or another user's files.
+      let imagePath = null;
+      if (ad.image_url) {
+        try {
+          const url = new URL(ad.image_url);
+          const marker = "/storage/v1/object/public/ad-images/";
+          const index = url.pathname.indexOf(marker);
+          if (index !== -1) {
+            const path = decodeURIComponent(url.pathname.slice(index + marker.length));
+            if (path.startsWith(auth.user.id + "/") && !path.split("/").includes("..")) {
+              imagePath = path;
+            }
+          }
+        } catch (parseError) {
+          console.warn("Invalid ad image URL:", parseError);
+        }
+      }
       const { data, error } = await client.from("ads").delete()
         .eq("id", ad.id).eq("user_id", auth.user.id).select("id");
       if (error) throw error;
@@ -777,7 +795,20 @@
       } catch (refreshError) {
         console.warn("Hitmigo post-delete refresh failed:", refreshError);
       }
-      alert("Обявата е изтрита. Снимката може да остане в хранилището.");
+      if (imagePath) {
+        const { error: storageError } = await client.storage
+          .from("ad-images").remove([imagePath]);
+        if (storageError) {
+          console.error("Hitmigo image cleanup failed:", storageError);
+          alert("Обявата е изтрита, но снимката не можа да се премахне от хранилището: " + storageError.message);
+        } else {
+          alert("Обявата и снимката са изтрити успешно.");
+        }
+      } else {
+        alert(ad.image_url
+          ? "Обявата е изтрита. Снимката не е разпозната като файл от твоята папка в хранилището."
+          : "Обявата е изтрита успешно.");
+      }
     } catch (error) {
       alert("Неуспешно изтриване: " + error.message);
     } finally {
