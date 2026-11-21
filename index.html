@@ -227,7 +227,7 @@
 <header>
   <div class="migo-brand"><img class="migo-face migo-mascot-img" src="migo-mascot.svg" alt="Миго намига, показва палец нагоре и носи шапка MIGO" width="108" height="122"><div class="migo-title"><h1>Hitmigo</h1><p>Обяви, които намираш мигом! 👍</p></div></div>
   <div class="profile-menu-wrap">
-    <a id="profile-menu-button" class="profile-menu-button" href="#profile">👤 Моят профил</a>
+    <a id="profile-menu-button" class="profile-menu-button" href="profile.html">👤 Моят профил</a>
   </div>
 </header>
 
@@ -477,7 +477,7 @@
 
 <script>
   function renderProfileRoute() {
-    const isProfile = window.location.hash === "#profile";
+    const isProfile = false;
     document.body.classList.toggle("profile-page", isProfile);
     document.title = isProfile ? "Моят профил | Hitmigo" : "Hitmigo";
     if (isProfile) {
@@ -485,7 +485,7 @@
       updateUserPanel();
     }
   }
-  function toggleProfileMenu() { window.location.hash = "profile"; renderProfileRoute(); }
+  function toggleProfileMenu() { window.location.href = "profile.html"; }
   function closeProfilePage() { history.pushState(null, "", window.location.pathname + window.location.search); renderProfileRoute(); }
   document.addEventListener("click", (event) => {
     if (document.body.classList.contains("profile-page") && event.target.closest("#my-ads-list button")) {
