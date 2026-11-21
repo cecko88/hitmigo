@@ -802,7 +802,7 @@
           console.error("Hitmigo image cleanup failed:", storageError);
           alert("Обявата е изтрита, но снимката не можа да се премахне от хранилището: " + storageError.message);
         } else {
-          alert("Обявата и снимката са изтрити успешно.");
+          alert("Обявата е изтрита успешно.");
         }
       } else {
         alert(ad.image_url
