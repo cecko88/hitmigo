@@ -284,7 +284,7 @@
           <label for="profile-city">Град</label>
           <input id="profile-city" type="text" maxlength="100" autocomplete="address-level2" placeholder="Град">
           <button id="profile-save-button" type="submit">Запази промените</button>
-          <p id="profile-save-message" role="status" aria-live="polite"></p>
+          <p id="profile-save-message" role="status" aria-live="polite" style="display:none; margin:12px 0; padding:12px 14px; border-radius:8px; font-weight:700;"></p>
         </form>
       </div>
       <button type="button" onclick="handleLogout()">
@@ -557,7 +557,9 @@
     const message = document.getElementById("profile-save-message");
     const button = document.getElementById("profile-save-button");
     message.textContent = "";
+    message.style.display = "none";
     button.disabled = true;
+    button.textContent = "Запазване…";
     try {
       const { data: { user }, error: userError } = await db.auth.getUser();
       if (userError || !user) throw new Error("Влез в профила си, за да запазиш данните.");
@@ -568,11 +570,18 @@
       };
       const { error } = await db.auth.updateUser({ data: details });
       if (error) throw error;
-      message.textContent = "Промените са запазени.";
+      message.textContent = "✅ Данните са запазени успешно!";
+      message.style.display = "block";
+      message.style.background = "#e6f7e9";
+      message.style.color = "#14532d";
     } catch (error) {
-      message.textContent = error.message || "Неуспешно запазване. Опитай отново.";
+      message.textContent = "❌ " + (error.message || "Неуспешно запазване. Опитай отново.");
+      message.style.display = "block";
+      message.style.background = "#fee2e2";
+      message.style.color = "#991b1b";
     } finally {
       button.disabled = false;
+      button.textContent = "Запази промените";
     }
   }
 
