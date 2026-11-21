@@ -273,7 +273,20 @@
       <h3>Моите обяви</h3>
       <button type="button" onclick="closeProfilePage(); document.getElementById('publish-section').scrollIntoView({behavior:'smooth'})">Добави обява</button>
       <div id="my-ads-list"></div>
-      <div class="profile-details"><h3>Лични данни и настройки</h3><p>Имейл: <span id="user-email"></span></p></div>
+      <div class="profile-details">
+        <h3>Лични данни и настройки</h3>
+        <p>Имейл: <span id="user-email"></span></p>
+        <form id="profile-details-form" onsubmit="saveProfileDetails(event)">
+          <label for="profile-name">Име</label>
+          <input id="profile-name" type="text" maxlength="100" autocomplete="name" placeholder="Твоето име">
+          <label for="profile-phone">Телефон</label>
+          <input id="profile-phone" type="tel" maxlength="30" autocomplete="tel" placeholder="Телефон за връзка">
+          <label for="profile-city">Град</label>
+          <input id="profile-city" type="text" maxlength="100" autocomplete="address-level2" placeholder="Град">
+          <button id="profile-save-button" type="submit">Запази промените</button>
+          <p id="profile-save-message" role="status" aria-live="polite"></p>
+        </form>
+      </div>
       <button type="button" onclick="handleLogout()">
         Изход
       </button>
@@ -539,6 +552,30 @@
     }
   }
 
+  async function saveProfileDetails(event) {
+    event.preventDefault();
+    const message = document.getElementById("profile-save-message");
+    const button = document.getElementById("profile-save-button");
+    message.textContent = "";
+    button.disabled = true;
+    try {
+      const { data: { user }, error: userError } = await db.auth.getUser();
+      if (userError || !user) throw new Error("Влез в профила си, за да запазиш данните.");
+      const details = {
+        hitmigo_name: document.getElementById("profile-name").value.trim(),
+        hitmigo_phone: document.getElementById("profile-phone").value.trim(),
+        hitmigo_city: document.getElementById("profile-city").value.trim()
+      };
+      const { error } = await db.auth.updateUser({ data: details });
+      if (error) throw error;
+      message.textContent = "Промените са запазени.";
+    } catch (error) {
+      message.textContent = error.message || "Неуспешно запазване. Опитай отново.";
+    } finally {
+      button.disabled = false;
+    }
+  }
+
   async function updateUserPanel() {
     if (typeof db === "undefined") return;
 
@@ -555,6 +592,11 @@
     document.getElementById("user-email").textContent =
       user ? user.email : "";
 
+    const metadata = user?.user_metadata || {};
+    document.getElementById("profile-name").value = user ? (metadata.hitmigo_name || "") : "";
+    document.getElementById("profile-phone").value = user ? (metadata.hitmigo_phone || "") : "";
+    document.getElementById("profile-city").value = user ? (metadata.hitmigo_city || "") : "";
+    document.getElementById("profile-save-message").textContent = "";
     document.getElementById("auth-message").textContent = "";
     if (typeof loadMyAds === "function") await loadMyAds();
   }
